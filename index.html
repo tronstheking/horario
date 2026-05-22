@@ -665,6 +665,11 @@
             border: 1px solid var(--google-red) !important;
         }
 
+        .card.overbooking-danger {
+            border: 2px solid var(--google-red) !important;
+            background: #fff8f8 !important;
+        }
+
         .modal-overlay.active {
             opacity: 1;
             visibility: visible;
@@ -1010,6 +1015,11 @@
                                         <label style="font-size: 13px; color: var(--google-blue); display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600;">
                                             <input type="checkbox" id="keepDataCheckbox" style="accent-color: var(--google-blue); width: 16px; height: 16px; cursor: pointer;">
                                             ⚡ Multimateria
+                                        </label>
+                                        <!-- AUTOMATIZACIÓN 3: OVERBOOKING VIP -->
+                                        <label style="font-size: 13px; color: var(--google-red); display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600;" title="Permite forzar cupos en salones llenos">
+                                            <input type="checkbox" id="overbookingCheckbox" style="accent-color: var(--google-red); width: 16px; height: 16px; cursor: pointer;" onchange="renderFormSelect()">
+                                            🔥 VIP
                                         </label>
                                     </div>
                                 </div>
@@ -1526,12 +1536,17 @@
                     chip.title = "⚠️ ¡Último cupo! Alguien más podría tomarlo.";
                 }
 
-                if (isFull) {
+                const isOverbooking = document.getElementById('overbookingCheckbox')?.checked;
+
+                if (isFull && !isOverbooking) {
                     chip.innerHTML = `<div style="font-weight: 600; margin-bottom: 4px; pointer-events: none;">${shortDays}</div><div style="font-size: 12px; opacity: 0.8; pointer-events: none;">${shortTime}</div><div style="color: var(--google-red); font-size: 12px; margin-top: 6px; font-weight: 600; pointer-events: none;">Lleno</div>`;
                     chip.style.opacity = '0.5';
                     chip.style.cursor = 'not-allowed';
                 } else {
-                    chip.innerHTML = `<div style="font-weight: 600; margin-bottom: 4px; pointer-events: none;">${shortDays}</div><div style="font-size: 12px; opacity: 0.8; pointer-events: none;">${shortTime}</div><div style="font-size: 12px; margin-top: 6px; font-weight: 600; pointer-events: none;">${enrolled}/${max}</div>`;
+                    let overbookingHtml = isFull ? `<div style="color: var(--google-red); font-size: 12px; margin-top: 6px; font-weight: 600; pointer-events: none;">🔥 ${enrolled}/${max} VIP</div>` : `<div style="font-size: 12px; margin-top: 6px; font-weight: 600; pointer-events: none;">${enrolled}/${max}</div>`;
+                    chip.innerHTML = `<div style="font-weight: 600; margin-bottom: 4px; pointer-events: none;">${shortDays}</div><div style="font-size: 12px; opacity: 0.8; pointer-events: none;">${shortTime}</div>${overbookingHtml}`;
+                    
+                    if (isFull) chip.style.border = '1px solid var(--google-red)';
                     hasAvailable = true;
                     chip.addEventListener('click', (e) => {
                         e.preventDefault();
@@ -1652,7 +1667,7 @@
                     }
 
                     const card = document.createElement('div');
-                    card.className = `card ${isFull ? 'full' : ''}`;
+                    card.className = `card ${isFull ? 'full' : ''} ${count > max ? 'overbooking-danger' : ''}`;
                     
                     // Al hacer click abre el modal de alumnos interactivo
                     card.onclick = () => openModal(subId, block.id);
@@ -1694,8 +1709,8 @@
                             <div class="avatars-preview">
                                 ${avatarsHtml || '<span style="font-size:11px; color:var(--google-text-secondary); font-style:italic; padding-left:8px;">Sin alumnos</span>'}
                             </div>
-                            <div class="status-pill ${isFull ? 'status-full' : 'status-available'}">
-                                ${isFull ? 'LLENO' : `${count}/${max} alumnos`}
+                            <div class="status-pill ${isFull ? 'status-full' : 'status-available'}" style="${count > max ? 'background:var(--google-red); color:white; border-color:var(--google-red);' : ''}">
+                                ${count > max ? `🔥 SOBRECUPO ${count}/${max}` : (isFull ? 'LLENO' : `${count}/${max} alumnos`)}
                             </div>
                         </div>
                     `;
