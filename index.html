@@ -1022,6 +1022,7 @@
             </div>
             <h3 id="dialogTitle" style="font-size: 20px; font-weight: 600; margin-bottom: 12px;">Título</h3>
             <p id="dialogMessage" style="font-size: 15px; color: var(--google-text-secondary); margin-bottom: 28px; line-height: 1.5;">Mensaje</p>
+            <div id="dialogHtmlContent" style="margin-bottom: 24px; text-align: left; display: none;"></div>
             <div style="display: flex; gap: 12px; justify-content: center;" id="dialogButtons">
                 <button id="dialogCancelBtn" class="btn-primary" style="background: rgba(243, 244, 246, 0.8); color: var(--google-text); box-shadow: none; padding: 12px 24px; font-weight: 500;">Cancelar</button>
                 <button id="dialogOkBtn" class="btn-primary" style="flex-grow: 1; padding: 12px 24px; font-weight: 500;">Aceptar</button>
@@ -1753,6 +1754,15 @@
             document.getElementById('dialogTitle').textContent = options.title;
             document.getElementById('dialogMessage').textContent = options.message;
             
+            const htmlContentDiv = document.getElementById('dialogHtmlContent');
+            if (options.htmlContent) {
+                htmlContentDiv.style.display = 'block';
+                htmlContentDiv.innerHTML = options.htmlContent;
+            } else {
+                htmlContentDiv.style.display = 'none';
+                htmlContentDiv.innerHTML = '';
+            }
+
             const iconContainer = document.getElementById('dialogIconContainer');
             const icon = document.getElementById('dialogIcon');
             const okBtn = document.getElementById('dialogOkBtn');
@@ -1822,30 +1832,44 @@
         window.moveStudent = function(subId, blockId, index) {
             const student = appData[subId][blockId][index];
             const name = student.name || student;
+
+            let optionsHtml = '<select id="transferSelect" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--google-border); font-family: \'Inter\', sans-serif; cursor:pointer; font-size:14px; color:var(--google-text); margin-top:10px;">';
+            optionsHtml += '<option value="">-- Selecciona el nuevo horario --</option>';
+            
+            BLOCKS.filter(b => b.subjects.includes(subId) && b.id !== blockId).forEach(b => {
+                const count = getRealOccupancy(subId, b.id);
+                const max = getMaxStudents(subId);
+                if (count < max) {
+                    optionsHtml += `<option value="${b.id}">${b.days} ${b.time.split(' - ')[0]}</option>`;
+                }
+            });
+            optionsHtml += '</select>';
+
             showPremiumDialog({
-                title: 'Reubicar Estudiante',
-                message: `¿Mover a ${name} a otro horario? Se retirará de este bloque y pasará al formulario para que le reasignes uno nuevo.`,
+                title: '🔄 Traslado Rápido',
+                message: `Selecciona el nuevo horario para ${name}:`,
+                htmlContent: optionsHtml,
                 type: 'info',
                 showCancel: true,
-                okText: 'Reubicar'
+                okText: 'Trasladar'
             }).then(confirmed => {
                 if (confirmed) {
-                    // Remover del bloque actual
-                    appData[subId][blockId].splice(index, 1);
-                    saveData();
-                    renderGrid();
-                    closeModal();
-                    
-                    // Preparar el formulario
-                    document.getElementById('formSection').classList.remove('hidden');
-                    document.getElementById('studentName').value = name;
-                    
-                    // Activar chip de la materia
-                    const chip = document.querySelector(`.chip[data-subject="${subId}"]`);
-                    if (chip) chip.click();
-                    
-                    // Hacer scroll
-                    document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
+                    const newBlockId = document.getElementById('transferSelect').value;
+                    if (newBlockId) {
+                        if (!appData[subId][newBlockId]) appData[subId][newBlockId] = [];
+                        
+                        const studentToMove = {...student};
+                        studentToMove.dayRestriction = 0;
+                        studentToMove.variant = null;
+                        
+                        appData[subId][newBlockId].push(studentToMove);
+                        appData[subId][blockId].splice(index, 1);
+                        
+                        saveData();
+                        renderFormSelect();
+                        renderGrid();
+                        closeModal();
+                    }
                 }
             });
         };
@@ -2065,20 +2089,27 @@
 
                 // Guardar y refrescar UI
                 saveData();
-                nameInput.value = '';
-                noteInput.value = '';
-                
                 renderFormSelect();
                 renderGrid();
 
-                const btn = document.getElementById('submitBtn');
-                const ogText = btn.innerHTML;
-                btn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 20px;">check</span> ¡Registrado!';
-                btn.style.backgroundColor = 'var(--google-green)';
-                setTimeout(() => {
-                    btn.innerHTML = ogText;
-                    btn.style.backgroundColor = '';
-                }, 2000);
+                const keepData = document.getElementById('keepDataCheckbox')?.checked;
+                if (keepData) {
+                    showToast('✅ Inscrito en ' + SUBJECTS[currentSelectedSubject]);
+                    noteInput.value = '';
+                    selectedBlockChips.forEach(chip => chip.classList.remove('selected'));
+                } else {
+                    nameInput.value = '';
+                    noteInput.value = '';
+                    selectedBlockChips.forEach(chip => chip.classList.remove('selected'));
+                    const btn = document.getElementById('submitBtn');
+                    const ogText = btn.innerHTML;
+                    btn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 20px;">check</span> ¡Registrado!';
+                    btn.style.backgroundColor = 'var(--google-green)';
+                    setTimeout(() => {
+                        btn.innerHTML = ogText;
+                        btn.style.backgroundColor = '';
+                    }, 2000);
+                }
             });
 
             // 4. Modales de Cierre
@@ -2099,6 +2130,98 @@
 
             menuBtn.addEventListener('click', toggleSidebar);
             mobileOverlay.addEventListener('click', toggleSidebar);
+
+            // Agregar botón en el menú lateral para ANALYTICS
+            const sidebarNav = document.querySelector('.sidebar-nav');
+            if (sidebarNav) {
+                const analyticsBtn = document.createElement('div');
+                analyticsBtn.className = 'nav-item';
+                analyticsBtn.innerHTML = '<span class="material-symbols-rounded">bar_chart</span>Estado (Analytics)';
+                analyticsBtn.onclick = (e) => {
+                    e.preventDefault();
+                    showDirectorAnalytics();
+                };
+                sidebarNav.appendChild(analyticsBtn);
+            }
+        }
+
+        // ==========================================
+        // AUTOMATIZACIÓN 3: PANEL DEL DIRECTOR
+        // ==========================================
+        function showDirectorAnalytics() {
+            let totalStudents = 0;
+            let criticalRooms = [];
+            let ghostRooms = [];
+            const studentCounts = {};
+
+            for (const subId in appData) {
+                for (const blockId in appData[subId]) {
+                    const students = appData[subId][blockId] || [];
+                    const realOccupancy = getRealOccupancy(subId, blockId);
+                    const max = getMaxStudents(subId);
+                    const b = BLOCKS.find(bl => bl.id === blockId);
+                    
+                    if (!b || realOccupancy === 0) continue;
+                    
+                    students.forEach(st => {
+                        const name = (st.name || st).trim().toLowerCase();
+                        if (!studentCounts[name]) studentCounts[name] = new Set();
+                        studentCounts[name].add(subId);
+                    });
+
+                    const blockLabel = `${SUBJECTS[subId]} - ${b.days} ${b.time.split(' - ')[0]}`;
+                    if (realOccupancy >= max - 1) {
+                        criticalRooms.push(`• ${blockLabel} <span style="color:var(--google-red); font-weight:600;">(${realOccupancy}/${max})</span>`);
+                    } else if (realOccupancy <= 2) {
+                        ghostRooms.push(`• ${blockLabel} <span style="color:var(--brand-primary); font-weight:600;">(${realOccupancy}/${max})</span>`);
+                    }
+                }
+            }
+
+            for (const [name] of Object.entries(studentCounts)) totalStudents++;
+            
+            const topStudents = [];
+            for (const [name, subjectsSet] of Object.entries(studentCounts)) {
+                if (subjectsSet.size >= 3) {
+                    topStudents.push(`• <span style="text-transform:capitalize;">${name}</span> <span style="color:var(--google-green); font-weight:600;">(${subjectsSet.size} materias)</span>`);
+                }
+            }
+
+            let htmlContent = `
+                <div style="display: grid; grid-template-columns: 1fr; gap: 15px; font-family: 'Inter', sans-serif;">
+                    <div style="background: var(--google-blue); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700;">${totalStudents}</div>
+                        <div style="font-size: 13px; opacity: 0.9;">Alumnos Únicos Activos</div>
+                    </div>
+                    <div style="background: #fce8e6; padding: 12px; border-radius: 8px; border-left: 4px solid var(--google-red);">
+                        <strong style="color: var(--google-red); font-size: 13px;"><span class="material-symbols-rounded" style="font-size:16px; vertical-align: bottom;">local_fire_department</span> Salones Críticos (Casi llenos)</strong>
+                        <div style="margin-top: 6px; font-size: 13px; color: var(--google-text-secondary); max-height: 80px; overflow-y: auto;">
+                            ${criticalRooms.length > 0 ? criticalRooms.join('<br>') : 'Ninguno.'}
+                        </div>
+                    </div>
+                    <div style="background: var(--brand-secondary); padding: 12px; border-radius: 8px; border-left: 4px solid var(--brand-primary);">
+                        <strong style="color: var(--brand-primary); font-size: 13px;"><span class="material-symbols-rounded" style="font-size:16px; vertical-align: bottom;">severe_cold</span> Salones Fríos (Riesgo)</strong>
+                        <div style="margin-top: 6px; font-size: 13px; color: var(--brand-primary); max-height: 80px; overflow-y: auto;">
+                            ${ghostRooms.length > 0 ? ghostRooms.join('<br>') : 'Ninguno.'}
+                        </div>
+                    </div>
+                    <div style="background: #e6f4ea; padding: 12px; border-radius: 8px; border-left: 4px solid var(--google-green);">
+                        <strong style="color: var(--google-green); font-size: 13px;"><span class="material-symbols-rounded" style="font-size:16px; vertical-align: bottom;">stars</span> VIPs (3+ materias)</strong>
+                        <div style="margin-top: 6px; font-size: 13px; color: #0d652d; max-height: 80px; overflow-y: auto;">
+                            ${topStudents.length > 0 ? topStudents.join('<br>') : 'Aún no hay VIPs.'}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            showPremiumDialog({
+                title: 'Estado de la Academia',
+                message: '',
+                htmlContent: htmlContent,
+                type: 'info',
+                showCancel: false,
+                okText: 'Cerrar Panel'
+            });
         }
 
         // Ejecutar app al cargar el DOM
