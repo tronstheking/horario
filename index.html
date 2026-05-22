@@ -1091,11 +1091,26 @@
             { id: 'sab-1', days: 'Sábados', time: '09:00 am - 12:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
             { id: 'mkt-1', days: 'Viernes', time: '09:00 am - 01:00 pm', subjects: ['marketing'] },
             { id: 'mkt-2', days: 'Sábados', time: '09:00 am - 01:00 pm', subjects: ['marketing'] },
+            // Mixtos (Días Individuales)
+            { id: 'l-1', days: 'Lunes', time: '09:00 am - 11:00 am', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            { id: 'l-2', days: 'Lunes', time: '11:00 am - 01:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            { id: 'l-3', days: 'Lunes', time: '02:00 pm - 03:30 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            { id: 'l-4', days: 'Lunes', time: '03:30 pm - 05:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
             
-            // Mixtos (Cajones genéricos para horarios cruzados)
-            { id: 'mix-1', days: 'Horario Mixto', time: 'Turnos Mañana (Varios)', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            { id: 'mix-2', days: 'Horario Mixto', time: 'Turnos Tarde (Varios)', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            { id: 'mix-3', days: 'Horario Mixto', time: 'Cruce Mañana/Tarde', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] }
+            { id: 'm-1', days: 'Martes', time: '09:00 am - 11:00 am', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            { id: 'm-2', days: 'Martes', time: '11:00 am - 01:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            { id: 'm-3', days: 'Martes', time: '02:00 pm - 03:30 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            { id: 'm-4', days: 'Martes', time: '03:30 pm - 05:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            
+            { id: 'mi-1', days: 'Miércoles', time: '09:00 am - 11:00 am', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            { id: 'mi-2', days: 'Miércoles', time: '11:00 am - 01:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            { id: 'mi-3', days: 'Miércoles', time: '02:00 pm - 03:30 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            { id: 'mi-4', days: 'Miércoles', time: '03:30 pm - 05:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            
+            { id: 'j-1', days: 'Jueves', time: '09:00 am - 11:00 am', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            { id: 'j-2', days: 'Jueves', time: '11:00 am - 01:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            { id: 'j-3', days: 'Jueves', time: '02:00 pm - 03:30 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            { id: 'j-4', days: 'Jueves', time: '03:30 pm - 05:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] }
         ];
 
         let appData = {};
@@ -1229,15 +1244,43 @@
 
         function getOverlappingBlocks(blockId) {
             switch (blockId) {
-                case 'lm-1': case 'lm-2': return ['lun-man', 'mie-man'];
-                case 'lm-3': case 'lm-4': return ['lun-tarde', 'mie-tarde'];
-                case 'mj-1': case 'mj-2': return ['mar-man', 'jue-man'];
-                case 'mj-3': case 'mj-4': return ['mar-tarde', 'jue-tarde'];
+                // Regulares (solapan con intensivos y con individuales mixtos)
+                case 'lm-1': return ['lun-man', 'mie-man', 'l-1', 'mi-1'];
+                case 'lm-2': return ['lun-man', 'mie-man', 'l-2', 'mi-2'];
+                case 'lm-3': return ['lun-tarde', 'mie-tarde', 'l-3', 'mi-3'];
+                case 'lm-4': return ['lun-tarde', 'mie-tarde', 'l-4', 'mi-4'];
+                case 'mj-1': return ['mar-man', 'jue-man', 'm-1', 'j-1'];
+                case 'mj-2': return ['mar-man', 'jue-man', 'm-2', 'j-2'];
+                case 'mj-3': return ['mar-tarde', 'jue-tarde', 'm-3', 'j-3'];
+                case 'mj-4': return ['mar-tarde', 'jue-tarde', 'm-4', 'j-4'];
                 
-                case 'lun-man': case 'mie-man': return ['lm-1', 'lm-2'];
-                case 'lun-tarde': case 'mie-tarde': return ['lm-3', 'lm-4'];
-                case 'mar-man': case 'jue-man': return ['mj-1', 'mj-2'];
-                case 'mar-tarde': case 'jue-tarde': return ['mj-3', 'mj-4'];
+                // Intensivos (solapan con regulares e individuales mixtos)
+                case 'lun-man': return ['lm-1', 'lm-2', 'l-1', 'l-2'];
+                case 'lun-tarde': return ['lm-3', 'lm-4', 'l-3', 'l-4'];
+                case 'mie-man': return ['lm-1', 'lm-2', 'mi-1', 'mi-2'];
+                case 'mie-tarde': return ['lm-3', 'lm-4', 'mi-3', 'mi-4'];
+                case 'mar-man': return ['mj-1', 'mj-2', 'm-1', 'm-2'];
+                case 'mar-tarde': return ['mj-3', 'mj-4', 'm-3', 'm-4'];
+                case 'jue-man': return ['mj-1', 'mj-2', 'j-1', 'j-2'];
+                case 'jue-tarde': return ['mj-3', 'mj-4', 'j-3', 'j-4'];
+                
+                // Individuales mixtos (solapan con regulares e intensivos)
+                case 'l-1': return ['lm-1', 'lun-man'];
+                case 'l-2': return ['lm-2', 'lun-man'];
+                case 'l-3': return ['lm-3', 'lun-tarde'];
+                case 'l-4': return ['lm-4', 'lun-tarde'];
+                case 'm-1': return ['mj-1', 'mar-man'];
+                case 'm-2': return ['mj-2', 'mar-man'];
+                case 'm-3': return ['mj-3', 'mar-tarde'];
+                case 'm-4': return ['mj-4', 'mar-tarde'];
+                case 'mi-1': return ['lm-1', 'mie-man'];
+                case 'mi-2': return ['lm-2', 'mie-man'];
+                case 'mi-3': return ['lm-3', 'mie-tarde'];
+                case 'mi-4': return ['lm-4', 'mie-tarde'];
+                case 'j-1': return ['mj-1', 'jue-man'];
+                case 'j-2': return ['mj-2', 'jue-man'];
+                case 'j-3': return ['mj-3', 'jue-tarde'];
+                case 'j-4': return ['mj-4', 'jue-tarde'];
             }
             return [];
         }
@@ -1248,12 +1291,13 @@
             
             const overlaps = getOverlappingBlocks(blockId);
             
-            if (overlaps.length === 2) {
-                const count1 = (data[overlaps[0]] || []).length;
-                const count2 = (data[overlaps[1]] || []).length;
-                return baseCount + Math.max(count1, count2);
-            }
-            return baseCount;
+            let maxOverlap = 0;
+            overlaps.forEach(overId => {
+                const count = (data[overId] || []).length;
+                if (count > maxOverlap) maxOverlap = count;
+            });
+            
+            return baseCount + maxOverlap;
         }
 
         /**
