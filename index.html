@@ -1076,17 +1076,6 @@
             { id: 'mj-3', days: 'Mar-Jue', time: '02:00 pm - 03:30 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
             { id: 'mj-4', days: 'Mar-Jue', time: '03:30 pm - 05:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
 
-            // Bloques de un solo día (Intensivos Mañana y Tarde)
-            { id: 'lun-man', days: 'Lunes', time: '09:00 am - 01:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
-            { id: 'mar-man', days: 'Martes', time: '09:00 am - 01:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
-            { id: 'mie-man', days: 'Miércoles', time: '09:00 am - 01:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
-            { id: 'jue-man', days: 'Jueves', time: '09:00 am - 01:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
-            
-            { id: 'lun-tarde', days: 'Lunes', time: '02:00 pm - 05:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
-            { id: 'mar-tarde', days: 'Martes', time: '02:00 pm - 05:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
-            { id: 'mie-tarde', days: 'Miércoles', time: '02:00 pm - 05:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
-            { id: 'jue-tarde', days: 'Jueves', time: '02:00 pm - 05:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
-
             { id: 'vie-1', days: 'Viernes', time: '09:00 am - 12:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
             { id: 'sab-1', days: 'Sábados', time: '09:00 am - 12:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
             { id: 'mkt-1', days: 'Viernes', time: '09:00 am - 01:00 pm', subjects: ['marketing'] },
@@ -1149,6 +1138,38 @@
             setInterval(update, 1000);
         }
 
+        function migrateLegacyData() {
+            let migrated = false;
+            const legacyMapping = {
+                'lun-man': [{id: 'lm-1', restr: 1}, {id: 'lm-2', restr: 1}],
+                'mie-man': [{id: 'lm-1', restr: 2}, {id: 'lm-2', restr: 2}],
+                'mar-man': [{id: 'mj-1', restr: 1}, {id: 'mj-2', restr: 1}],
+                'jue-man': [{id: 'mj-1', restr: 2}, {id: 'mj-2', restr: 2}],
+                'lun-tarde': [{id: 'lm-3', restr: 1}, {id: 'lm-4', restr: 1}],
+                'mie-tarde': [{id: 'lm-3', restr: 2}, {id: 'lm-4', restr: 2}],
+                'mar-tarde': [{id: 'mj-3', restr: 1}, {id: 'mj-4', restr: 1}],
+                'jue-tarde': [{id: 'mj-3', restr: 2}, {id: 'mj-4', restr: 2}]
+            };
+            for (const subId in appData) {
+                for (const legId in legacyMapping) {
+                    if (appData[subId][legId] && appData[subId][legId].length > 0) {
+                        const students = appData[subId][legId];
+                        const targets = legacyMapping[legId];
+                        students.forEach(st => {
+                            if (!st.variant) st.variant = "Intensivo";
+                            targets.forEach(t => {
+                                if (!appData[subId][t.id]) appData[subId][t.id] = [];
+                                appData[subId][t.id].push({...st, dayRestriction: t.restr});
+                            });
+                        });
+                        delete appData[subId][legId];
+                        migrated = true;
+                    }
+                }
+            }
+            if (migrated) saveData();
+        }
+
         async function loadData() {
             // Inicialización vacía para evitar crasheos antes de cargar Firebase
             appData = {
@@ -1166,12 +1187,14 @@
 
                 if (docSnap.exists()) {
                     appData = docSnap.data();
+                    migrateLegacyData();
                 } else {
                     // MIGRACIÓN: Si la BD está vacía, subir los datos que teníamos en localStorage
                     const stored = localStorage.getItem('academia_horarios');
                     if (stored) {
                         appData = JSON.parse(stored);
                         console.log("Migrando de localStorage a Firebase...");
+                        migrateLegacyData();
                     }
                     await setDoc(docRef, appData);
                 }
@@ -1180,6 +1203,7 @@
                 onSnapshot(docRef, (snap) => {
                     if (snap.exists()) {
                         appData = snap.data();
+                        migrateLegacyData();
                         renderFormSelect();
                         renderGrid();
                     }
@@ -1191,6 +1215,7 @@
                 const stored = localStorage.getItem('academia_horarios');
                 if (stored) {
                     appData = JSON.parse(stored);
+                    migrateLegacyData();
                 }
             }
         }
@@ -1222,26 +1247,11 @@
             return { bg: colors[index], text: textColors[index] };
         }
 
-        function getOverlappingBlocks(blockId) {
-            switch (blockId) {
-                case 'lm-1': case 'lm-2': return ['lun-man', 'mie-man'];
-                case 'lm-3': case 'lm-4': return ['lun-tarde', 'mie-tarde'];
-                case 'mj-1': case 'mj-2': return ['mar-man', 'jue-man'];
-                case 'mj-3': case 'mj-4': return ['mar-tarde', 'jue-tarde'];
-                
-                case 'lun-man': case 'mie-man': return ['lm-1', 'lm-2'];
-                case 'lun-tarde': case 'mie-tarde': return ['lm-3', 'lm-4'];
-                case 'mar-man': case 'jue-man': return ['mj-1', 'mj-2'];
-                case 'mar-tarde': case 'jue-tarde': return ['mj-3', 'mj-4'];
-            }
-            return [];
-        }
-
         function getRealOccupancy(subId, blockId) {
             const data = appData[subId] || {};
             const students = data[blockId] || [];
             
-            // Calculamos ocupación real considerando restricciones de día
+            // Calculamos ocupación real considerando restricciones de día (Ya no hay overlaps de bloques especiales)
             let day1Count = 0;
             let day2Count = 0;
             
@@ -1251,16 +1261,7 @@
                 else { day1Count++; day2Count++; }
             });
             
-            const baseCount = Math.max(day1Count, day2Count);
-            
-            const overlaps = getOverlappingBlocks(blockId);
-            let maxOverlap = 0;
-            overlaps.forEach(overId => {
-                const count = (data[overId] || []).length;
-                if (count > maxOverlap) maxOverlap = count;
-            });
-            
-            return baseCount + maxOverlap;
+            return Math.max(day1Count, day2Count);
         }
 
         /**
@@ -1272,6 +1273,50 @@
             container.innerHTML = '';
             
             let hasAvailable = false;
+
+            if (currentScheduleType === 'intensive') {
+                const intensiveSlots = [
+                    { id1: 'lm-1', id2: 'lm-2', dayRestr: 1, dayLabel: 'Lunes', timeLabel: '09:00 am - 01:00 pm' },
+                    { id1: 'mj-1', id2: 'mj-2', dayRestr: 1, dayLabel: 'Martes', timeLabel: '09:00 am - 01:00 pm' },
+                    { id1: 'lm-1', id2: 'lm-2', dayRestr: 2, dayLabel: 'Miércoles', timeLabel: '09:00 am - 01:00 pm' },
+                    { id1: 'mj-1', id2: 'mj-2', dayRestr: 2, dayLabel: 'Jueves', timeLabel: '09:00 am - 01:00 pm' },
+                    { id1: 'lm-3', id2: 'lm-4', dayRestr: 1, dayLabel: 'Lunes', timeLabel: '02:00 pm - 05:00 pm' },
+                    { id1: 'mj-3', id2: 'mj-4', dayRestr: 1, dayLabel: 'Martes', timeLabel: '02:00 pm - 05:00 pm' },
+                    { id1: 'lm-3', id2: 'lm-4', dayRestr: 2, dayLabel: 'Miércoles', timeLabel: '02:00 pm - 05:00 pm' },
+                    { id1: 'mj-3', id2: 'mj-4', dayRestr: 2, dayLabel: 'Jueves', timeLabel: '02:00 pm - 05:00 pm' }
+                ];
+                
+                intensiveSlots.forEach(slot => {
+                    const b1 = BLOCKS.find(b => b.id === slot.id1);
+                    if (!b1 || !b1.subjects.includes(currentSelectedSubject)) return;
+                    
+                    const count1 = getRealOccupancy(currentSelectedSubject, slot.id1);
+                    const count2 = getRealOccupancy(currentSelectedSubject, slot.id2);
+                    const max = getMaxStudents(currentSelectedSubject);
+                    const enrolled = Math.max(count1, count2);
+                    const isFull = count1 >= max || count2 >= max;
+                    
+                    const chip = document.createElement('div');
+                    chip.className = `chip ${isFull ? 'full' : ''}`;
+                    chip.dataset.blockId1 = slot.id1;
+                    chip.dataset.blockId2 = slot.id2;
+                    chip.dataset.dayRestr = slot.dayRestr;
+                    chip.dataset.variant = "Intensivo";
+                    
+                    chip.innerHTML = `<div style="font-weight: 600; margin-bottom: 4px; pointer-events: none;">${slot.dayLabel}</div><div style="font-size: 12px; opacity: 0.8; pointer-events: none;">${slot.timeLabel}</div><div style="font-size: 12px; margin-top: 6px; font-weight: 600; pointer-events: none;">${enrolled}/${max}</div>`;
+                    
+                    if (!isFull) {
+                        hasAvailable = true;
+                        chip.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            chip.classList.toggle('selected');
+                        });
+                    }
+                    container.appendChild(chip);
+                });
+                submitBtn.disabled = !hasAvailable;
+                return;
+            }
 
             if (currentScheduleType === 'mixto') {
                 // Generar tarjetas individuales para cada día
@@ -1443,7 +1488,7 @@
                     }
                     if (count > directCount) {
                         const extra = count - displayCount;
-                        avatarsHtml += `<div class="avatar-mini more" title="Estudiantes de turnos solapados">+${extra}</div>`;
+                        avatarsHtml += `<div class="avatar-mini more">+${extra}</div>`;
                     } else if (directCount > 3) {
                         avatarsHtml += `<div class="avatar-mini more">+${directCount - 3}</div>`;
                     }
@@ -1799,18 +1844,28 @@
 
                 // Insertar alumno de forma reactiva
                 selectedBlockChips.forEach(chip => {
-                    const blockId = chip.dataset.blockId;
                     const dayRestr = chip.dataset.dayRestr ? parseInt(chip.dataset.dayRestr) : 0;
-                    if (!appData[currentSelectedSubject][blockId]) {
-                        appData[currentSelectedSubject][blockId] = [];
+                    const blockVariant = chip.dataset.variant || variant;
+                    
+                    const addStudent = (bId) => {
+                        if (!appData[currentSelectedSubject][bId]) {
+                            appData[currentSelectedSubject][bId] = [];
+                        }
+                        appData[currentSelectedSubject][bId].push({
+                            name: name,
+                            date: currentDate,
+                            variant: blockVariant,
+                            note: note !== '' ? note : null,
+                            dayRestriction: dayRestr
+                        });
+                    };
+
+                    if (chip.dataset.blockId1 && chip.dataset.blockId2) {
+                        addStudent(chip.dataset.blockId1);
+                        addStudent(chip.dataset.blockId2);
+                    } else if (chip.dataset.blockId) {
+                        addStudent(chip.dataset.blockId);
                     }
-                    appData[currentSelectedSubject][blockId].push({
-                        name: name,
-                        date: currentDate,
-                        variant: variant,
-                        note: note !== '' ? note : null,
-                        dayRestriction: dayRestr
-                    });
                 });
 
                 // Guardar y refrescar UI
