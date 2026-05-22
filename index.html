@@ -895,17 +895,22 @@
                 <div class="form-collapse-wrapper">
                     <div class="form-collapse-inner">
                         <form id="registroForm" class="form-grid" style="padding-top: 4px;">
-                            <div class="input-group">
-                                <label for="studentName">Nombre del Estudiante</label>
-                                <input type="text" id="studentName" class="form-input" placeholder="Ej. Carlos Pérez" required>
+                            <div class="form-group">
+                                <label class="form-label">Nombre del Alumno <span style="color: var(--google-red);">*</span></label>
+                                <input type="text" id="studentName" class="form-input" placeholder="Ej: Juan Pérez" required autocomplete="off">
                             </div>
-                            
-                            <div class="input-group" id="modalityGroup" style="display: flex;">
-                                <label>Especialidad / Modalidad</label>
+
+                            <div class="form-group" id="modalityGroup" style="display: none;">
+                                <label class="form-label">Especialidad (Solo Diseño) <span style="color: var(--google-red);">*</span></label>
                                 <select id="studentModality" class="form-input">
-                                    <option value="Especialidad">Diseño Gráfico (Especialidad)</option>
-                                    <option value="Redes Sociales">Diseño para Redes Sociales</option>
+                                    <option value="Diseño Gráfico">Diseño Gráfico</option>
+                                    <option value="Diseño UI/UX">Diseño UI/UX</option>
                                 </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Nota u Observación (Opcional)</label>
+                                <input type="text" id="studentNote" class="form-input" placeholder="Ej: Solo asiste martes 2pm y jueves 3:30pm" autocomplete="off">
                             </div>
 
                             <div class="input-group full-width">
@@ -1427,6 +1432,7 @@
                     const name = student.name || student;
                     const date = student.date || 'Sin fecha';
                     const variant = student.variant ? `<span style="background: var(--google-disabled-bg); color: var(--google-text-secondary); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500; margin-left: 8px;">${student.variant}</span>` : '';
+                    const noteStr = student.note ? `<div style="font-size: 11px; color: var(--brand-secondary); margin-top: 4px; font-weight: 500; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-rounded" style="font-size: 14px;">info</span> ${student.note}</div>` : '';
                     const style = getAvatarColor(name);
                     list.innerHTML += `
                         <li class="student-item">
@@ -1434,8 +1440,9 @@
                             <div style="display: flex; flex-direction: column;">
                                 <div style="display: flex; align-items: center;"><span class="student-name">${name}</span>${variant}</div>
                                 <span style="font-size: 11px; color: var(--google-text-secondary); margin-top: 2px;">Inscrito: ${date}</span>
+                                ${noteStr}
                             </div>
-                            <div style="margin-left: auto; display: flex; gap: 4px;">
+                            <div style="margin-left: auto; display: flex; gap: 4px; align-items: flex-start;">
                                 <button class="btn-icon" onclick="moveStudent('${subId}', '${blockId}', ${index})" title="Reubicar estudiante" style="color: var(--google-blue);">
                                     <span class="material-symbols-rounded">edit_calendar</span>
                                 </button>
@@ -1584,7 +1591,7 @@
                     
                     // Mostrar u ocultar selector de especialidad
                     if (currentSelectedSubject === 'diseño') {
-                        modalityGroup.style.display = 'flex';
+                        modalityGroup.style.display = 'block';
                     } else {
                         modalityGroup.style.display = 'none';
                     }
@@ -1682,7 +1689,10 @@
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const nameInput = document.getElementById('studentName');
+                const modalitySelect = document.getElementById('studentModality');
+                const noteInput = document.getElementById('studentNote');
                 const name = nameInput.value.trim();
+                const note = noteInput.value.trim();
                 const selectedBlockChips = document.querySelectorAll('#blocksContainer .chip.selected');
 
                 if (!name) return;
@@ -1710,27 +1720,31 @@
                     return;
                 }
 
-                // Insertar alumno de forma reactiva en todos los bloques con fecha y variante
                 const currentDate = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
                 const variant = currentSelectedSubject === 'diseño' ? document.getElementById('studentModality').value : null;
 
+                // Insertar alumno de forma reactiva
                 selectedBlockChips.forEach(chip => {
                     const blockId = chip.dataset.blockId;
+                    if (!appData[currentSelectedSubject][blockId]) {
+                        appData[currentSelectedSubject][blockId] = [];
+                    }
                     appData[currentSelectedSubject][blockId].push({
                         name: name,
                         date: currentDate,
-                        variant: variant
+                        variant: variant,
+                        note: note !== '' ? note : null
                     });
                 });
 
+                // Guardar y refrescar UI
                 saveData();
                 nameInput.value = '';
+                noteInput.value = '';
                 
-                // Actualizar UI
                 renderFormSelect();
                 renderGrid();
-                
-                // Feedback visual de éxito estilo Google
+
                 const btn = document.getElementById('submitBtn');
                 const ogText = btn.innerHTML;
                 btn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 20px;">check</span> ¡Registrado!';
