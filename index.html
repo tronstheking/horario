@@ -343,6 +343,14 @@
             transform: translateY(-1px);
         }
 
+        /* Color Coding por Materia (Chips del Formulario) */
+        .chip[data-subject="diseño"].selected { background: #e8f0fe; color: #174ea6; border-color: #4285f4; }
+        .chip[data-subject="capcut"].selected { background: #fce8e6; color: #a50e0e; border-color: #ea4335; }
+        .chip[data-subject="ia"].selected { background: #e6f4ea; color: #0d652d; border-color: #34a853; }
+        .chip[data-subject="marketing"].selected { background: #fef7e0; color: #e37400; border-color: #fbbc04; }
+        .chip[data-subject="excel"].selected { background: #e4f7fb; color: #007b83; border-color: #12b5cb; }
+        .chip[data-subject="wordpress"].selected { background: #f3e8fd; color: #681da8; border-color: #9334e6; }
+
         .btn-primary {
             background-color: var(--brand-secondary);
             color: var(--brand-primary);
@@ -419,7 +427,33 @@
 
         .card.full {
             background-color: var(--google-disabled-bg);
+            border-left-width: 1px !important;
         }
+
+        /* Color Coding por Materia (Cards) */
+        .card.sub-diseño { background-color: rgba(232, 240, 254, 0.6); border-left: 4px solid #4285f4; }
+        .card.sub-diseño .card-title { color: #174ea6; }
+        .card.sub-diseño .status-available { background: #e8f0fe; color: #1a73e8; border-color: #d2e3fc; }
+
+        .card.sub-capcut { background-color: rgba(252, 232, 230, 0.6); border-left: 4px solid #ea4335; }
+        .card.sub-capcut .card-title { color: #a50e0e; }
+        .card.sub-capcut .status-available { background: #fce8e6; color: #d93025; border-color: #fad2cf; }
+
+        .card.sub-ia { background-color: rgba(230, 244, 234, 0.6); border-left: 4px solid #34a853; }
+        .card.sub-ia .card-title { color: #0d652d; }
+        .card.sub-ia .status-available { background: #e6f4ea; color: #188038; border-color: #ceead6; }
+
+        .card.sub-marketing { background-color: rgba(254, 247, 224, 0.6); border-left: 4px solid #fbbc04; }
+        .card.sub-marketing .card-title { color: #e37400; }
+        .card.sub-marketing .status-available { background: #fef7e0; color: #ea8600; border-color: #fef0b3; }
+
+        .card.sub-excel { background-color: rgba(228, 247, 251, 0.6); border-left: 4px solid #12b5cb; }
+        .card.sub-excel .card-title { color: #007b83; }
+        .card.sub-excel .status-available { background: #e4f7fb; color: #007b83; border-color: #cbf0f8; }
+
+        .card.sub-wordpress { background-color: rgba(243, 232, 253, 0.6); border-left: 4px solid #9334e6; }
+        .card.sub-wordpress .card-title { color: #681da8; }
+        .card.sub-wordpress .status-available { background: #f3e8fd; color: #681da8; border-color: #e9d2fd; }
 
         .card-header {
             display: flex;
@@ -1778,7 +1812,7 @@
                     }
 
                     const card = document.createElement('div');
-                    card.className = `card ${isFull ? 'full' : ''} ${count > max ? 'overbooking-danger' : ''}`;
+                    card.className = `card sub-${subId} ${isFull ? 'full' : ''} ${count > max ? 'overbooking-danger' : ''}`;
                     
                     // Al hacer click abre el modal de alumnos interactivo
                     card.onclick = () => openModal(subId, block.id);
