@@ -665,25 +665,75 @@
             border: 1px solid var(--google-red) !important;
         }
 
-        .toast {
+        #toastContainer {
             position: fixed;
             bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background-color: var(--google-text);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 100px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-left: 4px solid var(--google-blue);
+            color: var(--google-text);
+            padding: 16px 20px;
+            border-radius: 8px;
             font-size: 14px;
             font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 9999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
             opacity: 0;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            overflow: hidden;
+            pointer-events: auto;
+            min-width: 280px;
         }
+
         .toast.show {
-            transform: translateX(-50%) translateY(0);
+            transform: translateX(0);
             opacity: 1;
+        }
+
+        .toast-icon {
+            font-size: 24px;
+        }
+
+        .toast.success { border-left-color: var(--google-green); }
+        .toast.success .toast-icon { color: var(--google-green); }
+
+        .toast.error { border-left-color: var(--google-red); }
+        .toast.error .toast-icon { color: var(--google-red); }
+
+        .toast.info { border-left-color: var(--google-blue); }
+        .toast.info .toast-icon { color: var(--google-blue); }
+
+        .toast.warning { border-left-color: var(--brand-primary); }
+        .toast.warning .toast-icon { color: var(--brand-primary); }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: currentColor;
+            width: 100%;
+            opacity: 0.3;
+            transform-origin: left;
+            animation: toast-progress linear forwards;
+        }
+
+        @keyframes toast-progress {
+            to { transform: scaleX(0); }
         }
 
         .card.overbooking-danger {
@@ -1211,19 +1261,44 @@
             startClock();
         }
 
-        function showToast(msg) {
-            let toast = document.getElementById('globalToast');
-            if (!toast) {
-                toast = document.createElement('div');
-                toast.id = 'globalToast';
-                toast.className = 'toast';
-                document.body.appendChild(toast);
+        function showToast(msg, type = 'success', duration = 4000) {
+            let container = document.getElementById('toastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                document.body.appendChild(container);
             }
-            toast.textContent = msg;
-            toast.classList.add('show');
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = 'check_circle';
+            if (type === 'error') icon = 'error';
+            if (type === 'info') icon = 'info';
+            if (type === 'warning') icon = 'warning';
+
+            toast.innerHTML = `
+                <span class="material-symbols-rounded toast-icon">${icon}</span>
+                <span style="flex-grow:1;">${msg}</span>
+                <div class="toast-progress" style="animation-duration: ${duration}ms; color: var(--google-${type === 'warning' ? 'yellow' : (type === 'error' ? 'red' : (type === 'success' ? 'green' : 'blue'))});"></div>
+            `;
+
+            container.appendChild(toast);
+
+            // Animar entrada
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    toast.classList.add('show');
+                });
+            });
+
+            // Animar salida y eliminar
             setTimeout(() => {
                 toast.classList.remove('show');
-            }, 3000);
+                setTimeout(() => {
+                    if (toast.parentElement) toast.remove();
+                }, 400); // Esperar que termine la transición
+            }, duration);
         }
 
         function setupLogin() {
@@ -2219,7 +2294,7 @@
 
                 const keepData = document.getElementById('keepDataCheckbox')?.checked;
                 if (keepData) {
-                    showToast('✅ Inscrito en ' + SUBJECTS[currentSelectedSubject]);
+                    showToast(`Inscrito en ${SUBJECTS[currentSelectedSubject]}`, 'success');
                     noteInput.value = '';
                     selectedBlockChips.forEach(chip => chip.classList.remove('selected'));
                 } else {
