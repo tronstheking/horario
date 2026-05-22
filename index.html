@@ -1942,32 +1942,75 @@
                 grid.style.flexDirection = 'column';
                 grid.style.gap = '24px';
                 
-                // Agrupar por horas
-                const timeGroups = {};
+                // Agrupar por días individuales, luego por horas
+                const dayGroups = {
+                    'Lunes': {},
+                    'Martes': {},
+                    'Miércoles': {},
+                    'Jueves': {},
+                    'Viernes': {},
+                    'Sábados': {}
+                };
+
+                const actualDaysMap = {
+                    'Lun-Mié': ['Lunes', 'Miércoles'],
+                    'Mar-Jue': ['Martes', 'Jueves'],
+                    'Viernes': ['Viernes'],
+                    'Sábados': ['Sábados']
+                };
+
                 BLOCKS.forEach(block => {
-                    if (!timeGroups[block.time]) timeGroups[block.time] = {};
-                    if (!timeGroups[block.time][block.days]) timeGroups[block.time][block.days] = [];
-                    timeGroups[block.time][block.days].push(block);
+                    const actualDays = actualDaysMap[block.days] || [block.days];
+                    actualDays.forEach(day => {
+                        if (dayGroups[day]) {
+                            if (!dayGroups[day][block.time]) dayGroups[day][block.time] = [];
+                            dayGroups[day][block.time].push(block);
+                        }
+                    });
                 });
 
-                const sortedTimes = Object.keys(timeGroups).sort();
-                
-                sortedTimes.forEach(time => {
-                    const timeSection = document.createElement('div');
-                    timeSection.className = 'form-section'; // Aprovechar los estilos de card limpia
-                    timeSection.style.marginBottom = '0';
-                    timeSection.style.padding = '24px';
+                Object.keys(dayGroups).forEach(day => {
+                    const timesInDay = dayGroups[day];
                     
-                    let html = `<div style="font-size: 18px; font-weight: 600; color: var(--google-blue); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;"><span class="material-symbols-rounded">schedule</span> ${time}</div>`;
-                    html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">`;
+                    // Solo renderizar el día si tiene al menos un bloque con asignaturas válidas
+                    let hasValidSubjects = false;
+                    Object.values(timesInDay).forEach(blocks => {
+                        blocks.forEach(block => {
+                            if (block.subjects.some(subId => subjectsToRender.includes(subId))) {
+                                hasValidSubjects = true;
+                            }
+                        });
+                    });
+
+                    if (!hasValidSubjects) return;
+
+                    const daySection = document.createElement('div');
+                    daySection.className = 'form-section'; // Aprovechar los estilos de card limpia
+                    daySection.style.marginBottom = '0';
+                    daySection.style.padding = '24px';
                     
-                    for (const day in timeGroups[time]) {
+                    let html = `<div style="font-size: 18px; font-weight: 600; color: var(--google-blue); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;"><span class="material-symbols-rounded">event</span> ${day}</div>`;
+                    html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">`;
+                    
+                    const sortedTimes = Object.keys(timesInDay).sort();
+                    
+                    sortedTimes.forEach(time => {
+                        // Verificar si este horario específico tiene asignaturas válidas
+                        let timeHasValidSubjects = false;
+                        timesInDay[time].forEach(block => {
+                            if (block.subjects.some(subId => subjectsToRender.includes(subId))) {
+                                timeHasValidSubjects = true;
+                            }
+                        });
+                        
+                        if (!timeHasValidSubjects) return;
+
                         html += `<div style="background: #f8f9fa; border: 1px solid var(--google-border); border-radius: 12px; padding: 16px;">`;
-                        html += `<div style="font-weight: 600; color: var(--google-text); margin-bottom: 12px; font-size: 15px; display: flex; align-items: center; gap: 6px;"><span class="material-symbols-rounded" style="font-size: 18px; color: var(--google-text-secondary);">event</span> ${day}</div>`;
+                        html += `<div style="font-weight: 600; color: var(--google-text); margin-bottom: 12px; font-size: 15px; display: flex; align-items: center; gap: 6px;"><span class="material-symbols-rounded" style="font-size: 18px; color: var(--google-text-secondary);">schedule</span> ${time}</div>`;
                         html += `<div style="display: flex; flex-direction: column; gap: 8px;">`;
                         
-                        const blocksInDay = timeGroups[time][day];
-                        blocksInDay.forEach(block => {
+                        const blocks = timesInDay[time];
+                        blocks.forEach(block => {
                             block.subjects.forEach(subId => {
                                 if (!subjectsToRender.includes(subId)) return;
                                 const count = getRealOccupancy(subId, block.id);
@@ -1989,10 +2032,11 @@
                         });
                         
                         html += `</div></div>`;
-                    }
+                    });
+
                     html += `</div>`;
-                    timeSection.innerHTML = html;
-                    grid.appendChild(timeSection);
+                    daySection.innerHTML = html;
+                    grid.appendChild(daySection);
                 });
                 
                 return; // Salir de la función normal de renderizado
