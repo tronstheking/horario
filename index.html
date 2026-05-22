@@ -320,10 +320,18 @@
             user-select: none;
         }
 
-        .chip:hover {
+        @media (hover: hover) {
+            .chip:hover {
+                background-color: var(--google-disabled-bg);
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-subtle);
+            }
+        }
+
+        .chip:active {
+            transform: translateY(0);
+            box-shadow: none;
             background-color: var(--google-disabled-bg);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-subtle);
         }
 
         .chip.selected {
@@ -1269,13 +1277,14 @@
                 shortTime = shortTime.replace(/:00/g, ''); // Remover :00 para ahorrar espacio
 
                 if (isFull) {
-                    chip.innerHTML = `<div style="font-weight: 600; margin-bottom: 4px;">${shortDays}</div><div style="font-size: 12px; opacity: 0.8;">${shortTime}</div><div style="color: var(--google-red); font-size: 12px; margin-top: 6px; font-weight: 600;">Lleno</div>`;
+                    chip.innerHTML = `<div style="font-weight: 600; margin-bottom: 4px; pointer-events: none;">${shortDays}</div><div style="font-size: 12px; opacity: 0.8; pointer-events: none;">${shortTime}</div><div style="color: var(--google-red); font-size: 12px; margin-top: 6px; font-weight: 600; pointer-events: none;">Lleno</div>`;
                     chip.style.opacity = '0.5';
                     chip.style.cursor = 'not-allowed';
                 } else {
-                    chip.innerHTML = `<div style="font-weight: 600; margin-bottom: 4px;">${shortDays}</div><div style="font-size: 12px; opacity: 0.8;">${shortTime}</div><div style="font-size: 12px; margin-top: 6px; font-weight: 600;">${enrolled}/${max}</div>`;
+                    chip.innerHTML = `<div style="font-weight: 600; margin-bottom: 4px; pointer-events: none;">${shortDays}</div><div style="font-size: 12px; opacity: 0.8; pointer-events: none;">${shortTime}</div><div style="font-size: 12px; margin-top: 6px; font-weight: 600; pointer-events: none;">${enrolled}/${max}</div>`;
                     hasAvailable = true;
-                    chip.addEventListener('click', () => {
+                    chip.addEventListener('click', (e) => {
+                        e.preventDefault();
                         chip.classList.toggle('selected');
                     });
                 }
