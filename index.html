@@ -1995,7 +1995,19 @@
                     let html = `<div style="font-size: 18px; font-weight: 600; color: var(--google-blue); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;"><span class="material-symbols-rounded">event</span> ${day}</div>`;
                     html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">`;
                     
-                    const sortedTimes = Object.keys(timesInDay).sort();
+                    const sortedTimes = Object.keys(timesInDay).sort((a, b) => {
+                        const parseTime = (t) => {
+                            const match = t.match(/(\d+):(\d+)\s*(am|pm)/i);
+                            if (!match) return 0;
+                            let h = parseInt(match[1], 10);
+                            const m = parseInt(match[2], 10);
+                            const p = match[3].toLowerCase();
+                            if (p === 'pm' && h !== 12) h += 12;
+                            if (p === 'am' && h === 12) h = 0;
+                            return h * 60 + m;
+                        };
+                        return parseTime(a) - parseTime(b);
+                    });
                     
                     sortedTimes.forEach(time => {
                         // Verificar si este horario específico tiene asignaturas válidas (>0 alumnos)
