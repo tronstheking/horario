@@ -1079,39 +1079,52 @@
                 });
             }
 
-            const docRef = doc(db, "academia", "horarios");
-            const docSnap = await getDoc(docRef);
+            try {
+                const docRef = doc(db, "academia", "horarios");
+                const docSnap = await getDoc(docRef);
 
-            if (docSnap.exists()) {
-                appData = docSnap.data();
-            } else {
-                // MIGRACIÓN: Si la BD está vacía, subir los datos que teníamos en localStorage
+                if (docSnap.exists()) {
+                    appData = docSnap.data();
+                } else {
+                    // MIGRACIÓN: Si la BD está vacía, subir los datos que teníamos en localStorage
+                    const stored = localStorage.getItem('academia_horarios');
+                    if (stored) {
+                        appData = JSON.parse(stored);
+                        console.log("Migrando de localStorage a Firebase...");
+                    }
+                    await setDoc(docRef, appData);
+                }
+
+                // Sincronización en tiempo real
+                onSnapshot(docRef, (snap) => {
+                    if (snap.exists()) {
+                        appData = snap.data();
+                        renderFormSelect();
+                        renderGrid();
+                    }
+                }, (error) => {
+                    console.error("Aviso de sincronización:", error);
+                });
+            } catch (error) {
+                console.warn("⚠️ Firebase bloqueado (probablemente por reglas de seguridad). Usando almacenamiento local (localStorage).");
                 const stored = localStorage.getItem('academia_horarios');
                 if (stored) {
                     appData = JSON.parse(stored);
-                    console.log("Migrando de localStorage a Firebase...");
                 }
-                await setDoc(docRef, appData);
             }
-
-            // Sincronización en tiempo real
-            onSnapshot(docRef, (snap) => {
-                if (snap.exists()) {
-                    appData = snap.data();
-                    renderFormSelect();
-                    renderGrid();
-                    // Opcional: Actualizar modal si estuviera abierto (se podría redibujar aquí)
-                }
-            });
         }
 
         async function saveData() {
             // Guardar localmente como backup rápido (offline cache)
             localStorage.setItem('academia_horarios', JSON.stringify(appData));
             
-            // Subir a Firebase
-            const docRef = doc(db, "academia", "horarios");
-            await setDoc(docRef, appData);
+            try {
+                // Subir a Firebase
+                const docRef = doc(db, "academia", "horarios");
+                await setDoc(docRef, appData);
+            } catch (error) {
+                console.error("⚠️ No se pudo sincronizar en la nube:", error);
+            }
         }
 
         /**
