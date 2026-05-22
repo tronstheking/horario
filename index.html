@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Control de Horarios</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+    <style>
+        :root {
+            /* Colores Academia - Estilo Premium */
+            --brand-primary: #20264a;
+            --brand-primary-hover: #151a33;
+            --brand-secondary: #f7ac05;
+            --brand-secondary-hover: #df9b04;
+            
+            --google-blue: #20264a; /* Legacy compat */
+            --google-blue-hover: #151a33;
+            --google-green: #10b981;
+            --google-red: #ef4444;
+            
+            --google-bg: #f0f4f8;
+            --google-surface: rgba(255, 255, 255, 0.85);
+            --google-text: #1f2937;
+            --google-text-secondary: #6b7280;
+            --google-disabled-bg: rgba(243, 244, 246, 0.7);
+            --google-border: rgba(229, 231, 235, 0.5);
+            
+            --border-radius-sm: 12px;
+            --border-radius-md: 20px;
+            --border-radius-lg: 28px;
+            --border-radius-xl: 36px;
+            
+            --shadow-subtle: 0 8px 16px -4px rgba(32, 38, 74, 0.05), 0 4px 8px -2px rgba(32, 38, 74, 0.02);
+            --shadow-modal: 0 24px 48px -12px rgba(32, 38, 74, 0.15), 0 12px 24px -8px rgba(32, 38, 74, 0.08);
+            --shadow-hover: 0 16px 32px -8px rgba(32, 38, 74, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            color: var(--google-text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: 260px;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid var(--google-border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--google-border);
+        }
+
+        .sidebar-header .logo {
+            width: 32px;
+            height: 32px;
+            background-color: var(--google-blue);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .sidebar-nav {
+            padding: 12px;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            border-radius: 0 24px 24px 0;
+            color: var(--google-text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 4px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .nav-item:hover {
+            background-color: var(--google-disabled-bg);
+        }
+
+        .nav-item.active {
+            background-color: var(--brand-primary);
+            color: var(--brand-secondary);
+            border-radius: var(--border-radius-md);
+            margin: 0 12px 4px 12px;
+            padding: 12px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .nav-item.active .material-symbols-rounded {
+            color: var(--brand-secondary);
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .header {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--google-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--google-text-secondary);
+            display: none;
+            padding: 8px;
+            border-radius: 50%;
+        }
+
+        .menu-btn:hover {
+            background-color: var(--google-disabled-bg);
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 400;
+            color: var(--google-text);
+        }
+
+        .header-right .avatar {
+            width: 36px;
+            height: 36px;
+            background-color: var(--google-blue);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+        }
+
+        .content-wrapper {
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* --- Formulario --- */
+        .form-section {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: var(--border-radius-lg);
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-subtle);
+            border: 1px solid var(--google-border);
+        }
+
+        .form-section.hidden {
+            display: none;
+        }
+
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            color: var(--google-text);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .form-header h2 {
+            font-size: 18px;
+            font-weight: 500;
+            flex-grow: 1;
+        }
+
+        .form-header .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .form-section.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .form-section.collapsed .form-header {
+            margin-bottom: 0;
+        }
+
+        .form-collapse-wrapper {
+            display: grid;
+            grid-template-rows: 1fr;
+            transition: grid-template-rows 0.3s ease;
+        }
+
+        .form-section.collapsed .form-collapse-wrapper {
+            grid-template-rows: 0fr;
+        }
+
+        .form-collapse-inner {
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-size: 13px;
+            color: var(--google-text-secondary);
+            font-weight: 500;
+        }
+
+        .form-input {
+            padding: 14px 20px;
+            border: 1px solid var(--google-border);
+            border-radius: 16px;
+            font-size: 15px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            border-color: var(--google-blue);
+            box-shadow: 0 0 0 3px rgba(32, 38, 74, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            padding: 10px 20px;
+            border: 1px solid var(--google-border);
+            border-radius: 100px;
+            font-size: 14px;
+            color: var(--google-text-secondary);
+            background-color: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+
+        .chip:hover {
+            background-color: var(--google-disabled-bg);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .chip.selected {
+            background-color: var(--brand-primary);
+            color: var(--brand-secondary);
+            border-color: var(--brand-primary);
+            font-weight: 500;
+            box-shadow: var(--shadow-subtle);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background-color: var(--brand-secondary);
+            color: var(--brand-primary);
+            border: none;
+            padding: 14px 28px;
+            border-radius: 100px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(247, 172, 5, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--brand-secondary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(247, 172, 5, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background-color: var(--google-border);
+            color: var(--google-text-secondary);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* --- Matriz de Horarios --- */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--google-border);
+            border-radius: var(--border-radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            cursor: pointer;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, background-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-6px) scale(1.02);
+        }
+
+        .card.full {
+            background-color: var(--google-disabled-bg);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--google-text);
+        }
+
+        .card-subtitle {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            color: var(--google-text-secondary);
+            font-size: 13px;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        .card-subtitle .material-symbols-rounded {
+            font-size: 16px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid var(--google-border);
+        }
+        
+        .card.full .card-footer {
+            border-top-color: var(--google-border);
+        }
+
+        .avatars-preview {
+            display: flex;
+        }
+
+        .avatar-mini {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: #E8EAED;
+            color: var(--google-text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 500;
+            border: 2px solid var(--google-surface);
+            margin-left: -8px;
+        }
+
+        .card.full .avatar-mini {
+            border-color: var(--google-disabled-bg);
+        }
+
+        .avatar-mini:first-child {
+            margin-left: 0;
+        }
+        
+        .avatar-mini.more {
+            background-color: var(--google-border);
+        }
+
+        .status-pill {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-available {
+            background-color: #E6F4EA;
+            color: var(--google-green);
+        }
+
+        .status-full {
+            background-color: #FCE8E6;
+            color: var(--google-red);
+        }
+
+        .lock-icon {
+            color: var(--google-text-secondary);
+            display: none;
+        }
+
+        .card.full .lock-icon {
+            display: block;
+        }
+
+        /* --- Stats --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background-color: var(--google-surface);
+            border: 1px solid var(--google-border);
+            border-radius: var(--border-radius-md);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon .material-symbols-rounded { font-size: 24px; }
+
+        .stat-info h3 {
+            font-size: 24px;
+            font-weight: 400;
+            color: var(--google-text);
+            margin-bottom: 4px;
+        }
+
+        .stat-info p {
+            font-size: 13px;
+            color: var(--google-text-secondary);
+            font-weight: 500;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-bar {
+            position: relative;
+        }
+
+        .search-input {
+            padding: 12px 16px 12px 40px;
+            border-radius: 100px;
+            border: 1px solid transparent;
+            background: rgba(243, 244, 246, 0.8);
+            outline: none;
+            width: 280px;
+            font-size: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .search-input:focus {
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 0 3px rgba(32, 38, 74, 0.1);
+            width: 300px;
+        }
+
+        /* --- Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(32, 33, 36, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--google-border);
+            border-radius: var(--border-radius-xl);
+            width: 90%;
+            max-width: 420px;
+            box-shadow: var(--shadow-modal);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            max-height: 80vh;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--google-border);
+        }
+
+        .modal-title-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .modal-subtitle {
+            font-size: 13px;
+            color: var(--google-text-secondary);
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: var(--google-text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icon:hover {
+            background-color: var(--google-disabled-bg);
+        }
+
+        .modal-body {
+            padding: 16px 24px;
+            overflow-y: auto;
+        }
+
+        .student-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .student-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .student-avatar {
+            width: 36px;
+            height: 36px;
+            background-color: #E8F0FE;
+            color: var(--google-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .student-name {
+            font-size: 14px;
+            color: var(--google-text);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px 0;
+            color: var(--google-text-secondary);
+            font-size: 14px;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 1024px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .form-grid .btn-primary {
+                grid-column: 1 / -1;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-wrap: wrap;
+                gap: 16px;
+                padding: 12px 16px;
+            }
+            
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .search-bar {
+                flex-grow: 1;
+                margin-right: 16px;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: -256px;
+                height: 100vh;
+                box-shadow: var(--shadow-modal);
+            }
+            
+            .sidebar.open {
+                transform: translateX(256px);
+            }
+
+            .menu-btn {
+                display: block;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .matrix-grid {
+                grid-template-columns: 1fr; /* Feed vertical fluido */
+            }
+            
+            .header h1 {
+                font-size: 18px;
+            }
+            
+            .content-wrapper {
+                padding: 16px;
+            }
+        }
+        
+        .overlay-mobile {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(32, 33, 36, 0.4);
+            z-index: 90;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .overlay-mobile.active {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header" style="justify-content: center;">
+            <img src="logo.png" alt="Logo CTD" style="height: 48px; width: auto; object-fit: contain;">
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-item active" data-filter="all">
+                <span class="material-symbols-rounded">dashboard</span>
+                Panel Principal
+            </div>
+            <div class="nav-item" data-filter="diseño">
+                <span class="material-symbols-rounded">palette</span>
+                Diseño
+            </div>
+            <div class="nav-item" data-filter="capcut">
+                <span class="material-symbols-rounded">movie</span>
+                CapCut
+            </div>
+            <div class="nav-item" data-filter="ia">
+                <span class="material-symbols-rounded">psychology</span>
+                Inteligencia Artificial
+            </div>
+            <div class="nav-item" data-filter="marketing">
+                <span class="material-symbols-rounded">campaign</span>
+                Marketing Digital
+            </div>
+            <div class="nav-item" data-filter="excel">
+                <span class="material-symbols-rounded">table_chart</span>
+                Excel
+            </div>
+            <div class="nav-item" data-filter="wordpress">
+                <span class="material-symbols-rounded">web</span>
+                WordPress
+            </div>
+        </div>
+    </div>
+    
+    <div class="overlay-mobile" id="overlayMobile"></div>
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="loginOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(20px);">
+        <div class="card" style="width: 90%; max-width: 400px; text-align: center; padding: 48px 32px;">
+            <img src="logo.png" alt="CTD Logo" style="height: 72px; margin-bottom: 24px; object-fit: contain; margin-left: auto; margin-right: auto;">
+            <h2 style="font-size: 24px; font-weight: 600; margin-bottom: 8px;">Control de Horarios</h2>
+            <p style="color: var(--google-text-secondary); margin-bottom: 32px;">Introduce tu contraseña para acceder.</p>
+            <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" style="width: 100%; margin-bottom: 16px; text-align: center; font-size: 20px; letter-spacing: 4px;">
+            <button id="loginBtn" class="btn-primary" style="width: 100%; justify-content: center;">Ingresar al Sistema</button>
+            <p id="loginError" style="color: var(--google-red); font-size: 14px; margin-top: 16px; font-weight: 500; display: none;">❌ Contraseña incorrecta</p>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-btn" id="menuBtn">
+                    <span class="material-symbols-rounded">menu</span>
+                </button>
+                <div style="display: flex; align-items: center; gap: 8px; color: var(--google-text);">
+                    <span class="material-symbols-rounded" style="color: var(--google-blue);">schedule</span>
+                    <h1 id="mainTitleHeader" style="font-size: 18px; font-weight: 500; letter-spacing: 0.5px;">--:--</h1>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="search-bar">
+                    <span class="material-symbols-rounded" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--google-text-secondary); font-size: 20px;">search</span>
+                    <input type="text" id="globalSearch" class="search-input" placeholder="Buscar alumno...">
+                </div>
+                <div class="avatar">CTD</div>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <section class="form-section collapsed" id="formSection">
+                <div class="form-header" id="formHeaderToggle">
+                    <span class="material-symbols-rounded" style="color: var(--google-blue);">person_add</span>
+                    <h2>Nuevo Registro</h2>
+                    <span class="material-symbols-rounded toggle-icon" style="color: var(--google-text-secondary);">expand_more</span>
+                </div>
+                
+                <div class="form-collapse-wrapper">
+                    <div class="form-collapse-inner">
+                        <form id="registroForm" class="form-grid" style="padding-top: 4px;">
+                            <div class="input-group">
+                        <label for="studentName">Nombre del Estudiante</label>
+                        <input type="text" id="studentName" class="form-input" placeholder="Ej. Carlos Pérez" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Asignatura</label>
+                        <div class="chips-container" id="subjectsContainer">
+                            <div class="chip selected" data-subject="diseño">Diseño</div>
+                            <div class="chip" data-subject="capcut">CapCut</div>
+                            <div class="chip" data-subject="ia">Inteligencia Artificial (IA)</div>
+                            <div class="chip" data-subject="marketing">Marketing Digital</div>
+                            <div class="chip" data-subject="excel">Excel</div>
+                            <div class="chip" data-subject="wordpress">WordPress</div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group" id="modalityGroup" style="display: flex;">
+                        <label>Especialidad / Modalidad</label>
+                        <select id="studentModality" class="form-input">
+                            <option value="Especialidad">Diseño Gráfico (Especialidad)</option>
+                            <option value="Redes Sociales">Diseño para Redes Sociales</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Tipo de Horario</label>
+                        <div class="chips-container" id="scheduleTypeContainer">
+                            <div class="chip selected" data-type="regular">Regulares (2 Días)</div>
+                            <div class="chip" data-type="intensive">Intensivos (1 Día)</div>
+                            <div class="chip" data-type="weekend">Fin de Semana</div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Día y Bloque (Puedes seleccionar varios)</label>
+                        <div class="chips-container" id="blocksContainer">
+                            <!-- Los chips interactivos se generan aquí -->
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <span class="material-symbols-rounded" style="font-size: 20px;">add</span>
+                        Registrar
+                    </button>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            </section>
+
+
+            <div class="section-header" style="flex-wrap: wrap; gap: 16px;">
+                <div class="section-title">
+                    <span class="material-symbols-rounded" style="color: var(--google-blue);">grid_view</span>
+                    <span id="gridTitle">Matriz Completa de Horarios</span>
+                </div>
+                <div class="chips-container" id="statusFilterContainer">
+                    <div class="chip selected" data-status="all">Todos</div>
+                    <div class="chip" data-status="available">Libres</div>
+                    <div class="chip" data-status="full">Llenos</div>
+                </div>
+            </div>
+            
+            <div class="matrix-grid" id="matrixGrid">
+                </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title-area">
+                    <div class="modal-title" id="modalTitle">Materia</div>
+                    <div class="modal-subtitle" id="modalSubtitle">Horario</div>
+                </div>
+                <button class="btn-icon" id="closeModalBtn">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul class="student-list" id="modalStudentList">
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm/Alert Modal Premium -->
+    <div class="modal-overlay" id="dialogOverlay" style="z-index: 2000;">
+        <div class="modal" style="max-width: 340px; text-align: center; padding: 32px 24px;">
+            <div id="dialogIconContainer" style="margin-bottom: 20px; display: inline-flex; padding: 16px; border-radius: 50%; background: #fce8e6; color: var(--google-red);">
+                <span class="material-symbols-rounded" id="dialogIcon" style="font-size: 36px;">warning</span>
+            </div>
+            <h3 id="dialogTitle" style="font-size: 20px; font-weight: 600; margin-bottom: 12px;">Título</h3>
+            <p id="dialogMessage" style="font-size: 15px; color: var(--google-text-secondary); margin-bottom: 28px; line-height: 1.5;">Mensaje</p>
+            <div style="display: flex; gap: 12px; justify-content: center;" id="dialogButtons">
+                <button id="dialogCancelBtn" class="btn-primary" style="background: rgba(243, 244, 246, 0.8); color: var(--google-text); box-shadow: none; padding: 12px 24px; font-weight: 500;">Cancelar</button>
+                <button id="dialogOkBtn" class="btn-primary" style="flex-grow: 1; padding: 12px 24px; font-weight: 500;">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * --- DATOS Y CONSTANTES ---
+         */
+        function getMaxStudents(subId) {
+            if (subId === 'marketing') return 12;
+            if (subId === 'capcut') return 4;
+            return 8;
+        }
+        
+        const SUBJECTS = {
+            'diseño': 'Diseño',
+            'capcut': 'CapCut',
+            'ia': 'Inteligencia Artificial (IA)',
+            'marketing': 'Marketing Digital',
+            'excel': 'Excel',
+            'wordpress': 'WordPress'
+        };
+
+        const BLOCKS = [
+            { id: 'lm-1', days: 'Lun-Mié', time: '09:00 am - 11:00 am', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            { id: 'lm-2', days: 'Lun-Mié', time: '11:00 am - 01:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            { id: 'lm-3', days: 'Lun-Mié', time: '02:00 pm - 03:30 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            { id: 'lm-4', days: 'Lun-Mié', time: '03:30 pm - 05:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            
+            { id: 'mj-1', days: 'Mar-Jue', time: '09:00 am - 11:00 am', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            { id: 'mj-2', days: 'Mar-Jue', time: '11:00 am - 01:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            { id: 'mj-3', days: 'Mar-Jue', time: '02:00 pm - 03:30 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            { id: 'mj-4', days: 'Mar-Jue', time: '03:30 pm - 05:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+
+            // Bloques de un solo día (Intensivos Mañana y Tarde)
+            { id: 'lun-man', days: 'Lunes', time: '09:00 am - 01:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            { id: 'mar-man', days: 'Martes', time: '09:00 am - 01:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            { id: 'mie-man', days: 'Miércoles', time: '09:00 am - 01:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            { id: 'jue-man', days: 'Jueves', time: '09:00 am - 01:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            
+            { id: 'lun-tarde', days: 'Lunes', time: '02:00 pm - 05:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            { id: 'mar-tarde', days: 'Martes', time: '02:00 pm - 05:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            { id: 'mie-tarde', days: 'Miércoles', time: '02:00 pm - 05:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            { id: 'jue-tarde', days: 'Jueves', time: '02:00 pm - 05:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+
+            { id: 'vie-1', days: 'Viernes', time: '09:00 am - 12:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            { id: 'sab-1', days: 'Sábados', time: '09:00 am - 12:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
+            { id: 'mkt-1', days: 'Viernes', time: '09:00 am - 01:00 pm', subjects: ['marketing'] },
+            { id: 'mkt-2', days: 'Sábados', time: '09:00 am - 01:00 pm', subjects: ['marketing'] }
+        ];
+
+        let appData = {};
+        let currentSelectedSubject = 'diseño'; // Materia activa en el formulario
+        let currentScheduleType = 'regular';   // Tipo de horario activo en el formulario
+        let currentActiveFilter = 'all';       // Filtro del Sidebar General
+        let currentStatusFilter = 'all';       // Filtro de estado de capacidad
+
+        /**
+         * --- INICIALIZACIÓN ---
+         */
+        function initApp() {
+            setupLogin();
+            loadData();
+            setupEventListeners();
+            renderFormSelect();
+            renderGrid();
+            startClock();
+        }
+
+        function setupLogin() {
+            const isLogged = sessionStorage.getItem('ctd_auth_token');
+            const overlay = document.getElementById('loginOverlay');
+            
+            if (isLogged === 'granted') {
+                overlay.style.display = 'none';
+            }
+            
+            document.getElementById('loginBtn').addEventListener('click', () => {
+                const pass = document.getElementById('loginPassword').value;
+                // Contraseña sencilla para el frontend
+                if (pass === 'admin123' || pass === 'ctd2024') {
+                    sessionStorage.setItem('ctd_auth_token', 'granted');
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.style.display = 'none', 300);
+                } else {
+                    document.getElementById('loginError').style.display = 'block';
+                }
+            });
+            
+            document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') document.getElementById('loginBtn').click();
+            });
+        }
+
+        function startClock() {
+            const clockEl = document.getElementById('mainTitleHeader');
+            function update() {
+                const now = new Date();
+                clockEl.textContent = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: true });
+            }
+            update();
+            setInterval(update, 1000);
+        }
+
+        function loadData() {
+            const stored = localStorage.getItem('academia_horarios');
+            if (stored) {
+                appData = JSON.parse(stored);
+                // Asegurar que las nuevas asignaturas se inicialicen si es la primera vez que se cargan sobre datos antiguos
+                for (const sub in SUBJECTS) {
+                    if (!appData[sub]) {
+                        appData[sub] = {};
+                        BLOCKS.filter(b => b.subjects.includes(sub)).forEach(b => {
+                            appData[sub][b.id] = [];
+                        });
+                    } else {
+                        // Asegurar que bloques recién agregados existan y migrar strings a objetos
+                        BLOCKS.filter(b => b.subjects.includes(sub)).forEach(b => {
+                            if (!appData[sub][b.id]) {
+                                appData[sub][b.id] = [];
+                                
+                                // MIGRACIÓN: Pasar los datos antiguos de lj- a lm- y de vs-1 a sab-1
+                                const oldId = b.id.replace('lm-', 'lj-');
+                                if (b.id.startsWith('lm-') && appData[sub][oldId]) {
+                                    appData[sub][b.id] = [...appData[sub][oldId]];
+                                }
+                                if (b.id === 'sab-1' && appData[sub]['vs-1']) {
+                                    appData[sub][b.id] = [...appData[sub]['vs-1']];
+                                }
+                            }
+                            
+                            appData[sub][b.id] = appData[sub][b.id].map(student => {
+                                if (typeof student === 'string') {
+                                    return { name: student, date: 'Sin fecha' };
+                                }
+                                return student;
+                            });
+                        });
+                        
+                        // Limpiar los horarios viejos para ahorrar espacio
+                        Object.keys(appData[sub]).forEach(k => {
+                            if (k.startsWith('lj-') || k === 'vs-1') delete appData[sub][k];
+                        });
+                    }
+                }
+            } else {
+                appData = {
+                    'diseño': {},
+                    'capcut': {},
+                    'ia': {},
+                    'marketing': {},
+                    'excel': {},
+                    'wordpress': {}
+                };
+                
+                for (const sub in SUBJECTS) {
+                    BLOCKS.filter(b => b.subjects.includes(sub)).forEach(b => {
+                        appData[sub][b.id] = [];
+                    });
+                }
+
+                // Datos semilla solicitados
+                const seedDate = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                appData['capcut']['lm-2'] = [
+                    {name: "Ana García", date: seedDate}, {name: "Carlos López", date: seedDate}, 
+                    {name: "María Pérez", date: seedDate}, {name: "Juan Díaz", date: seedDate},
+                    {name: "Elena Torres", date: seedDate}, {name: "Pedro Sánchez", date: seedDate}, 
+                    {name: "Laura Gómez", date: seedDate}, {name: "Luis Romero", date: seedDate}
+                ];
+                appData['diseño']['lm-1'] = [{name: "Sofía Ruiz", date: seedDate}, {name: "Martín Castro", date: seedDate}, {name: "Lucía Vargas", date: seedDate}];
+                appData['ia']['sab-1'] = [{name: "Diego Flores", date: seedDate}, {name: "Valentina Ríos", date: seedDate}];
+
+                saveData();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('academia_horarios', JSON.stringify(appData));
+        }
+
+        /**
+         * --- UTILIDADES ---
+         */
+        function getInitials(name) {
+            return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+        }
+        
+        function getAvatarColor(name) {
+            const colors = ['#E8F0FE', '#E6F4EA', '#FCE8E6', '#FEF7E0', '#F3E8FD'];
+            const textColors = ['#1A73E8', '#188038', '#C5221F', '#EA8600', '#7627BB'];
+            const index = name.length % colors.length;
+            return { bg: colors[index], text: textColors[index] };
+        }
+
+        /**
+         * --- RENDERIZADO DEL SELECTOR DEL FORMULARIO ---
+         */
+        function renderFormSelect() {
+            const container = document.getElementById('blocksContainer');
+            const submitBtn = document.getElementById('submitBtn');
+            container.innerHTML = '';
+            
+            let hasAvailable = false;
+
+            BLOCKS.filter(b => {
+                if (!b.subjects.includes(currentSelectedSubject)) return false;
+                if (currentScheduleType === 'regular') return b.id.startsWith('lm-') || b.id.startsWith('mj-');
+                if (currentScheduleType === 'intensive') return b.id.endsWith('-tarde') || b.id.endsWith('-man');
+                if (currentScheduleType === 'weekend') return b.id.startsWith('vs-') || b.id.startsWith('mkt-') || b.id.startsWith('vie-') || b.id.startsWith('sab-');
+                return true;
+            }).forEach(block => {
+                const enrolled = appData[currentSelectedSubject][block.id]?.length || 0;
+                const max = getMaxStudents(currentSelectedSubject);
+                const isFull = enrolled >= max;
+                
+                const chip = document.createElement('div');
+                chip.className = 'chip block-chip';
+                chip.dataset.blockId = block.id;
+                
+                // Acortar textos para mobile
+                const shortDays = block.days.replace('Lunes', 'Lun').replace('Martes', 'Mar').replace('Miércoles', 'Mié').replace('Jueves', 'Jue').replace('Viernes', 'Vie').replace('Sábados', 'Sáb');
+                const shortTime = block.time.replace(/0(\d):/g, '$1:').replace(/ am/g, 'am').replace(/ pm/g, 'pm').replace(/ - /g, '-');
+                
+                if (isFull) {
+                    chip.innerHTML = `<span style="color: var(--google-red);">❌</span> ${shortDays}, ${shortTime} (Lleno)`;
+                    chip.style.opacity = '0.5';
+                    chip.style.cursor = 'not-allowed';
+                } else {
+                    chip.textContent = `${shortDays}, ${shortTime} (${enrolled}/${max})`;
+                    hasAvailable = true;
+                    chip.addEventListener('click', () => {
+                        chip.classList.toggle('selected');
+                    });
+                }
+                
+                container.appendChild(chip);
+            });
+
+            if (!hasAvailable) {
+                container.innerHTML = '<div style="font-size:13px; color:var(--google-red); margin-top:8px;">❌ Sin cupos disponibles en esta materia</div>';
+                submitBtn.disabled = true;
+            } else {
+                submitBtn.disabled = false;
+            }
+        }
+
+        let searchQuery = '';
+
+
+
+        /**
+         * --- RENDERIZADO DEL DASHBOARD / MATRIX GRID ---
+         */
+        function renderGrid() {
+
+            const grid = document.getElementById('matrixGrid');
+            grid.innerHTML = '';
+
+            // Decidir qué asignaturas renderizar según el filtro del Sidebar
+            const subjectsToRender = currentActiveFilter === 'all' 
+                ? Object.keys(SUBJECTS) 
+                : [currentActiveFilter];
+
+            subjectsToRender.forEach(subId => {
+                const subName = SUBJECTS[subId];
+
+                BLOCKS.filter(b => b.subjects.includes(subId)).forEach(block => {
+                    const students = appData[subId][block.id] || [];
+                    
+                    // Lógica de Búsqueda Global
+                    if (searchQuery) {
+                        const hasMatch = students.some(student => {
+                            const n = student.name || student;
+                            return n.toLowerCase().includes(searchQuery);
+                        });
+                        if (!hasMatch) return; // Ocultar tarjeta si no contiene al estudiante buscado
+                    }
+
+                    const count = students.length;
+                    const max = getMaxStudents(subId);
+                    const isFull = count >= max;
+
+                    // Lógica de Filtro por Estado
+                    if (currentStatusFilter === 'available' && isFull) return;
+                    if (currentStatusFilter === 'full' && !isFull) return;
+
+                    const card = document.createElement('div');
+                    card.className = `card ${isFull ? 'full' : ''}`;
+                    
+                    // Al hacer click abre el modal de alumnos interactivo
+                    card.onclick = () => openModal(subId, block.id);
+
+                    // Previsualización de Avatares Circulares
+                    let avatarsHtml = '';
+                    const displayCount = Math.min(count, 3);
+                    for (let i = 0; i < displayCount; i++) {
+                        const studentName = students[i].name || students[i];
+                        const style = getAvatarColor(studentName);
+                        avatarsHtml += `<div class="avatar-mini" style="background-color:${style.bg}; color:${style.text}">${getInitials(studentName)}</div>`;
+                    }
+                    if (count > 3) {
+                        avatarsHtml += `<div class="avatar-mini more">+${count - 3}</div>`;
+                    }
+
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title" style="color: ${isFull ? 'var(--google-text-secondary)' : 'var(--google-blue)'};">${subName}</h3>
+                                <div class="card-subtitle">
+                                    <span class="material-symbols-rounded">schedule</span>
+                                    <span><strong>${block.days}</strong><br>${block.time}</span>
+                                </div>
+                            </div>
+                            <span class="material-symbols-rounded lock-icon">lock</span>
+                            ${!isFull ? '<span class="material-symbols-rounded" style="color: var(--google-text-secondary); opacity: 0.5;">more_vert</span>' : ''}
+                        </div>
+                        <div class="card-footer">
+                            <div class="avatars-preview">
+                                ${avatarsHtml || '<span style="font-size:11px; color:var(--google-text-secondary); font-style:italic; padding-left:8px;">Sin alumnos</span>'}
+                            </div>
+                            <div class="status-pill ${isFull ? 'status-full' : 'status-available'}">
+                                ${isFull ? 'LLENO' : `${count}/${max} alumnos`}
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            });
+        }
+
+        /**
+         * --- CONTROL DEL MODAL DETALLES ---
+         */
+        const modalOverlay = document.getElementById('detailModal');
+        
+        function openModal(subId, blockId) {
+            const block = BLOCKS.find(b => b.id === blockId);
+            document.getElementById('modalTitle').textContent = SUBJECTS[subId];
+            document.getElementById('modalSubtitle').textContent = `${block.days}, ${block.time}`;
+            
+            const list = document.getElementById('modalStudentList');
+            const students = appData[subId][blockId] || [];
+            
+            list.innerHTML = '';
+            
+            if (students.length === 0) {
+                list.innerHTML = '<div class="empty-state">No hay alumnos inscritos en este bloque todavía.</div>';
+            } else {
+                students.forEach((student, index) => {
+                    const name = student.name || student;
+                    const date = student.date || 'Sin fecha';
+                    const variant = student.variant ? `<span style="background: var(--google-disabled-bg); color: var(--google-text-secondary); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500; margin-left: 8px;">${student.variant}</span>` : '';
+                    const style = getAvatarColor(name);
+                    list.innerHTML += `
+                        <li class="student-item">
+                            <div class="student-avatar" style="background-color:${style.bg}; color:${style.text}">${getInitials(name)}</div>
+                            <div style="display: flex; flex-direction: column;">
+                                <div style="display: flex; align-items: center;"><span class="student-name">${name}</span>${variant}</div>
+                                <span style="font-size: 11px; color: var(--google-text-secondary); margin-top: 2px;">Inscrito: ${date}</span>
+                            </div>
+                            <div style="margin-left: auto; display: flex; gap: 4px;">
+                                <button class="btn-icon" onclick="moveStudent('${subId}', '${blockId}', ${index})" title="Reubicar estudiante" style="color: var(--google-blue);">
+                                    <span class="material-symbols-rounded">edit_calendar</span>
+                                </button>
+                                <button class="btn-icon" onclick="removeStudent('${subId}', '${blockId}', ${index})" title="Eliminar estudiante" style="color: var(--google-red);">
+                                    <span class="material-symbols-rounded">delete</span>
+                                </button>
+                            </div>
+                        </li>
+                    `;
+                });
+            }
+            
+            modalOverlay.classList.add('active');
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+        }
+
+        function showPremiumDialog(options) {
+            const overlay = document.getElementById('dialogOverlay');
+            document.getElementById('dialogTitle').textContent = options.title;
+            document.getElementById('dialogMessage').textContent = options.message;
+            
+            const iconContainer = document.getElementById('dialogIconContainer');
+            const icon = document.getElementById('dialogIcon');
+            const okBtn = document.getElementById('dialogOkBtn');
+            const cancelBtn = document.getElementById('dialogCancelBtn');
+            
+            if (options.type === 'danger') {
+                iconContainer.style.background = '#fce8e6';
+                iconContainer.style.color = 'var(--google-red)';
+                icon.textContent = 'delete';
+                okBtn.style.backgroundColor = 'var(--google-red)';
+                okBtn.style.color = 'white';
+            } else if (options.type === 'info') {
+                iconContainer.style.background = '#e8f0fe';
+                iconContainer.style.color = 'var(--google-blue)';
+                icon.textContent = 'edit_calendar';
+                okBtn.style.backgroundColor = 'var(--google-blue)';
+                okBtn.style.color = 'white';
+            } else if (options.type === 'warning') {
+                iconContainer.style.background = '#fef7e0';
+                iconContainer.style.color = '#ea8600';
+                icon.textContent = 'warning';
+                okBtn.style.backgroundColor = '#ea8600';
+                okBtn.style.color = 'white';
+            }
+            
+            okBtn.textContent = options.okText || 'Aceptar';
+            
+            if (options.showCancel) {
+                cancelBtn.style.display = 'block';
+                cancelBtn.textContent = options.cancelText || 'Cancelar';
+            } else {
+                cancelBtn.style.display = 'none';
+            }
+            
+            overlay.classList.add('active');
+            
+            return new Promise((resolve) => {
+                okBtn.onclick = () => {
+                    overlay.classList.remove('active');
+                    resolve(true);
+                };
+                cancelBtn.onclick = () => {
+                    overlay.classList.remove('active');
+                    resolve(false);
+                };
+            });
+        }
+
+        window.removeStudent = function(subId, blockId, index) {
+            showPremiumDialog({
+                title: 'Eliminar Estudiante',
+                message: '¿Estás seguro de que deseas eliminar permanentemente a este estudiante del horario?',
+                type: 'danger',
+                showCancel: true,
+                okText: 'Sí, eliminar'
+            }).then(confirmed => {
+                if (confirmed) {
+                    appData[subId][blockId].splice(index, 1);
+                    saveData();
+                    renderFormSelect();
+                    renderGrid();
+                    openModal(subId, blockId); // Refrescar el modal
+                }
+            });
+        };
+
+        window.moveStudent = function(subId, blockId, index) {
+            const student = appData[subId][blockId][index];
+            const name = student.name || student;
+            showPremiumDialog({
+                title: 'Reubicar Estudiante',
+                message: `¿Mover a ${name} a otro horario? Se retirará de este bloque y pasará al formulario para que le reasignes uno nuevo.`,
+                type: 'info',
+                showCancel: true,
+                okText: 'Reubicar'
+            }).then(confirmed => {
+                if (confirmed) {
+                    // Remover del bloque actual
+                    appData[subId][blockId].splice(index, 1);
+                    saveData();
+                    renderGrid();
+                    closeModal();
+                    
+                    // Preparar el formulario
+                    document.getElementById('formSection').classList.remove('hidden');
+                    document.getElementById('studentName').value = name;
+                    
+                    // Activar chip de la materia
+                    const chip = document.querySelector(`.chip[data-subject="${subId}"]`);
+                    if (chip) chip.click();
+                    
+                    // Hacer scroll
+                    document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        };
+
+        /**
+         * --- CONFIGURACIÓN DE EVENTOS ---
+         */
+        function setupEventListeners() {
+            // Búsqueda Global
+            const searchInput = document.getElementById('globalSearch');
+            searchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase().trim();
+                renderGrid();
+            });
+
+            // Toggle formulario
+            document.getElementById('formHeaderToggle').addEventListener('click', () => {
+                document.getElementById('formSection').classList.toggle('collapsed');
+            });
+
+            // 1. Manejo de pestañas del Formulario (Chips de asignaturas)
+            const chips = document.querySelectorAll('#subjectsContainer .chip');
+            const modalityGroup = document.getElementById('modalityGroup');
+            chips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    chips.forEach(c => c.classList.remove('selected'));
+                    chip.classList.add('selected');
+                    currentSelectedSubject = chip.dataset.subject;
+                    
+                    // Mostrar u ocultar selector de especialidad
+                    if (currentSelectedSubject === 'diseño') {
+                        modalityGroup.style.display = 'flex';
+                    } else {
+                        modalityGroup.style.display = 'none';
+                    }
+                    
+                    renderFormSelect();
+                });
+            });
+
+            // 1.5 Manejo del Tipo de Horario
+            const typeChips = document.querySelectorAll('#scheduleTypeContainer .chip');
+            typeChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    typeChips.forEach(c => c.classList.remove('selected'));
+                    chip.classList.add('selected');
+                    currentScheduleType = chip.dataset.type;
+                    renderFormSelect();
+                });
+            });
+
+            // 2. Manejo de Filtros del Sidebar (Navegación General)
+            const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+            const formSection = document.getElementById('formSection');
+            const gridTitle = document.getElementById('gridTitle');
+
+            // 2.5 Manejo de Filtros de Estado (Libres, Llenos)
+            const statusChips = document.querySelectorAll('#statusFilterContainer .chip');
+            statusChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    statusChips.forEach(c => c.classList.remove('selected'));
+                    chip.classList.add('selected');
+                    currentStatusFilter = chip.dataset.status;
+                    renderGrid();
+                });
+            });
+
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    navItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    currentActiveFilter = item.dataset.filter;
+                    
+                    if (currentActiveFilter === 'all') {
+                        formSection.classList.remove('hidden');
+                        gridTitle.textContent = "Matriz Completa de Horarios";
+                    } else {
+                        // Si se filtra por aula específica, ocultamos el formulario para mejor UI y enfocamos el Grid
+                        formSection.classList.add('hidden');
+                        gridTitle.textContent = `Horarios Asignados para: ${SUBJECTS[currentActiveFilter]}`;
+                    }
+                    
+                    renderGrid();
+
+                    // Cerrar sidebar automáticamente en resoluciones móviles al seleccionar filtro
+                    const sidebar = document.getElementById('sidebar');
+                    const mobileOverlay = document.getElementById('overlayMobile');
+                    if (sidebar.classList.contains('open')) {
+                        sidebar.classList.remove('open');
+                        mobileOverlay.classList.remove('active');
+                    }
+                });
+            });
+
+            // 3. Envío e Inscripción del Formulario
+            const form = document.getElementById('registroForm');
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const nameInput = document.getElementById('studentName');
+                const name = nameInput.value.trim();
+                const selectedBlockChips = document.querySelectorAll('#blocksContainer .chip.selected');
+
+                if (!name) return;
+
+                if (selectedBlockChips.length === 0) {
+                    showPremiumDialog({ title: 'Atención', message: 'Por favor, selecciona al menos un bloque de horario.', type: 'warning', showCancel: false, okText: 'Entendido' });
+                    return;
+                }
+
+                const max = getMaxStudents(currentSelectedSubject);
+                let errors = false;
+
+                // Validación de seguridad por cupos máximos
+                selectedBlockChips.forEach(chip => {
+                    const blockId = chip.dataset.blockId;
+                    if (appData[currentSelectedSubject][blockId].length >= max) {
+                        errors = true;
+                    }
+                });
+
+                if (errors) {
+                    showPremiumDialog({ title: '¡Error de Cupo!', message: 'Uno de los horarios seleccionados se acaba de llenar. Selecciona otro diferente.', type: 'danger', showCancel: false, okText: 'Entendido' });
+                    renderFormSelect();
+                    renderGrid();
+                    return;
+                }
+
+                // Insertar alumno de forma reactiva en todos los bloques con fecha y variante
+                const currentDate = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                const variant = currentSelectedSubject === 'diseño' ? document.getElementById('studentModality').value : null;
+
+                selectedBlockChips.forEach(chip => {
+                    const blockId = chip.dataset.blockId;
+                    appData[currentSelectedSubject][blockId].push({
+                        name: name,
+                        date: currentDate,
+                        variant: variant
+                    });
+                });
+
+                saveData();
+                nameInput.value = '';
+                
+                // Actualizar UI
+                renderFormSelect();
+                renderGrid();
+                
+                // Feedback visual de éxito estilo Google
+                const btn = document.getElementById('submitBtn');
+                const ogText = btn.innerHTML;
+                btn.innerHTML = '<span class="material-symbols-rounded" style="font-size: 20px;">check</span> ¡Registrado!';
+                btn.style.backgroundColor = 'var(--google-green)';
+                setTimeout(() => {
+                    btn.innerHTML = ogText;
+                    btn.style.backgroundColor = '';
+                }, 2000);
+            });
+
+            // 4. Modales de Cierre
+            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) closeModal();
+            });
+
+            // 5. Soporte y Adaptabilidad Móvil (Sidebar Desplegable)
+            const menuBtn = document.getElementById('menuBtn');
+            const sidebar = document.getElementById('sidebar');
+            const mobileOverlay = document.getElementById('overlayMobile');
+
+            function toggleSidebar() {
+                sidebar.classList.toggle('open');
+                mobileOverlay.classList.toggle('active');
+            }
+
+            menuBtn.addEventListener('click', toggleSidebar);
+            mobileOverlay.addEventListener('click', toggleSidebar);
+        }
+
+        // Ejecutar app al cargar el DOM
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
