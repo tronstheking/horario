@@ -517,6 +517,54 @@
             display: block;
         }
 
+        /* --- Netflix Carousel --- */
+        .subject-section {
+            margin-bottom: 32px;
+            width: 100%;
+        }
+
+        .subject-header-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--google-text);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-left: 4px;
+        }
+
+        .carousel-container {
+            display: flex;
+            gap: 24px;
+            overflow-x: auto;
+            padding-bottom: 16px;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .carousel-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        .carousel-container::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 4px;
+        }
+        .carousel-container::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.15);
+            border-radius: 4px;
+        }
+        .carousel-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,0,0,0.3);
+        }
+
+        .carousel-container .card {
+            min-width: 290px;
+            max-width: 290px;
+            scroll-snap-align: start;
+            flex-shrink: 0;
+        }
+
         /* --- Stats --- */
         .stats-grid {
             display: grid;
@@ -1601,8 +1649,39 @@
                 subjectsToRender = [currentSubjectFilter];
             }
 
+            // Decidir estilo de grilla
+            const isNetflixStyle = subjectsToRender.length > 1;
+            
+            if (isNetflixStyle) {
+                grid.style.display = 'block'; // Apilar verticalmente las filas
+            } else {
+                grid.style.display = 'grid';  // Grilla tradicional para 1 sola materia
+                grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
+                grid.style.gap = '24px';
+            }
+
             subjectsToRender.forEach(subId => {
                 const subName = SUBJECTS[subId];
+                let container = grid;
+                let carousel = null;
+                let renderedCards = 0;
+
+                if (isNetflixStyle) {
+                    const section = document.createElement('div');
+                    section.className = 'subject-section';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'subject-header-title';
+                    header.innerHTML = `<span class="material-symbols-rounded" style="color: var(--brand-primary);">chevron_right</span> ${subName}`;
+                    
+                    carousel = document.createElement('div');
+                    carousel.className = 'carousel-container';
+                    
+                    section.appendChild(header);
+                    section.appendChild(carousel);
+                    container = carousel;
+                    grid.appendChild(section);
+                }
 
                 BLOCKS.filter(b => b.subjects.includes(subId)).forEach(block => {
                     const students = appData[subId][block.id] || [];
@@ -1682,8 +1761,13 @@
                             </div>
                         </div>
                     `;
-                    grid.appendChild(card);
+                    container.appendChild(card);
+                    renderedCards++;
                 });
+
+                if (isNetflixStyle && renderedCards === 0 && carousel) {
+                    carousel.parentElement.style.display = 'none'; // Ocultar fila si no tiene horarios que cumplan los filtros
+                }
             });
         }
 
