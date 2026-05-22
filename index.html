@@ -731,6 +731,14 @@
             transition: all 0.3s ease;
             min-width: 170px;
         }
+        .custom-select-trigger.small {
+            padding: 6px 14px;
+            min-width: 140px;
+            font-size: 13px;
+        }
+        .custom-select-trigger.small .material-symbols-rounded {
+            font-size: 16px;
+        }
         .custom-select-trigger:hover, .custom-select-wrapper.open .custom-select-trigger {
             background: #fff;
             border-color: var(--google-blue);
@@ -1192,11 +1200,17 @@
                                     Día y Bloque (Puedes seleccionar varios)
                                     <div style="display:flex; gap:12px; align-items:center; flex-wrap: wrap;">
                                         <!-- AUTOMATIZACIÓN 2: Flex-Routing Huecos -->
-                                        <select id="flexRoutingFilter" style="font-size:12px; padding:4px 8px; border-radius:4px; border:1px solid var(--google-border); outline:none; cursor:pointer;">
-                                            <option value="all">🔍 Todos los turnos</option>
-                                            <option value="am">🌅 Solo Mañanas</option>
-                                            <option value="pm">🌇 Solo Tardes</option>
-                                        </select>
+                                        <div class="custom-select-wrapper" id="flexRoutingWrap">
+                                            <div class="custom-select-trigger small" id="flexRoutingTrigger">
+                                                <span>🔍 Todos los turnos</span>
+                                                <span class="material-symbols-rounded">expand_more</span>
+                                            </div>
+                                            <div class="custom-options" id="flexRoutingOptions">
+                                                <div class="custom-option selected" data-value="all">🔍 Todos los turnos</div>
+                                                <div class="custom-option" data-value="am">🌅 Solo Mañanas</div>
+                                                <div class="custom-option" data-value="pm">🌇 Solo Tardes</div>
+                                            </div>
+                                        </div>
                                         <label style="font-size: 13px; color: var(--google-blue); display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600;">
                                             <input type="checkbox" id="keepDataCheckbox" style="accent-color: var(--google-blue); width: 16px; height: 16px; cursor: pointer;">
                                             ⚡ Multimateria
@@ -1659,6 +1673,10 @@
             const submitBtn = document.getElementById('submitBtn');
             container.innerHTML = '';
             
+            // Leer el valor del filtro custom
+            const routingWrap = document.getElementById('flexRoutingWrap');
+            const routeFilter = routingWrap && routingWrap.dataset.currentValue ? routingWrap.dataset.currentValue : 'all';
+
             let hasAvailable = false;
 
             if (currentScheduleType === 'intensive') {
@@ -1673,7 +1691,11 @@
                     { id1: 'mj-3', id2: 'mj-4', dayRestr: 2, dayLabel: 'Jueves', timeLabel: '02:00 pm - 05:00 pm' }
                 ];
                 
-                intensiveSlots.forEach(slot => {
+                intensiveSlots.filter(slot => {
+                    if (routeFilter === 'am' && slot.timeLabel.includes('pm')) return false;
+                    if (routeFilter === 'pm' && slot.timeLabel.includes('am')) return false;
+                    return true;
+                }).forEach(slot => {
                     const b1 = BLOCKS.find(b => b.id === slot.id1);
                     if (!b1 || !b1.subjects.includes(currentSelectedSubject)) return;
                     
@@ -1726,7 +1748,11 @@
                     { id: 'mj-4', dayRestr: 2, dayLabel: 'Jueves', timeLabel: '03:30 pm - 05:00 pm' }
                 ];
                 
-                mixedSlots.forEach(slot => {
+                mixedSlots.filter(slot => {
+                    if (routeFilter === 'am' && slot.timeLabel.includes('pm')) return false;
+                    if (routeFilter === 'pm' && slot.timeLabel.includes('am')) return false;
+                    return true;
+                }).forEach(slot => {
                     const baseBlock = BLOCKS.find(b => b.id === slot.id);
                     if (!baseBlock || !baseBlock.subjects.includes(currentSelectedSubject)) return;
                     
@@ -1757,10 +1783,15 @@
 
             BLOCKS.filter(b => {
                 if (!b.subjects.includes(currentSelectedSubject)) return false;
-                if (currentScheduleType === 'regular') return b.id.startsWith('lm-') || b.id.startsWith('mj-');
-                if (currentScheduleType === 'intensive') return b.id.endsWith('-tarde') || b.id.endsWith('-man');
-                if (currentScheduleType === 'weekend') return b.id.startsWith('vs-') || b.id.startsWith('mkt-') || b.id.startsWith('vie-') || b.id.startsWith('sab-');
-                return false; // Mixto se maneja arriba
+                if (currentScheduleType === 'regular' && !(b.id.startsWith('lm-') || b.id.startsWith('mj-'))) return false;
+                if (currentScheduleType === 'intensive' && !(b.id.endsWith('-tarde') || b.id.endsWith('-man'))) return false;
+                if (currentScheduleType === 'weekend' && !(b.id.startsWith('vs-') || b.id.startsWith('mkt-') || b.id.startsWith('vie-') || b.id.startsWith('sab-'))) return false;
+                
+                // AUTOMATIZACIÓN 2: Flex-Routing
+                if (routeFilter === 'am' && b.time.includes('pm')) return false;
+                if (routeFilter === 'pm' && b.time.includes('am')) return false;
+
+                return true;
             }).forEach(block => {
                 const enrolled = getRealOccupancy(currentSelectedSubject, block.id);
                 const max = getMaxStudents(currentSelectedSubject);
@@ -2365,6 +2396,14 @@
                 });
             });
 
+            // Flex Routing custom select
+            setupCustomSelect('flexRoutingWrap', 'flexRoutingTrigger', 'flexRoutingOptions', (val) => {
+                // Almacenar el valor en un dataset del contenedor principal para que renderFormSelect lo lea
+                const wrap = document.getElementById('flexRoutingWrap');
+                wrap.dataset.currentValue = val;
+                renderFormSelect();
+            });
+
             // 3. Envío e Inscripción del Formulario
             const form = document.getElementById('registroForm');
             form.addEventListener('submit', (e) => {
@@ -2503,9 +2542,10 @@
             mobileOverlay.addEventListener('click', toggleSidebar);
 
             // AUTOMATIZACIÓN 2: Reactividad del Flex-Routing
-            const flexFilter = document.getElementById('flexRoutingFilter');
-            if (flexFilter) {
-                flexFilter.addEventListener('change', renderFormSelect);
+            // Leer el valor del filtro custom en lugar del antiguo select
+            const routingWrap = document.getElementById('flexRoutingWrap');
+            if (routingWrap) {
+                // Se elimina el listener de 'change' ya que el setupCustomSelect maneja el callback directamente
             }
 
             // Agregar botón en el menú lateral para ANALYTICS
