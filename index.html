@@ -650,12 +650,24 @@
             justify-content: center;
             z-index: 1000;
             opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* --- Automations --- */
+        @keyframes pulse-danger {
+            0% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(234, 67, 53, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0); }
+        }
+        .last-seat-warning {
+            animation: pulse-danger 1.5s infinite;
+            border: 1px solid var(--google-red) !important;
         }
 
         .modal-overlay.active {
             opacity: 1;
+            visibility: visible;
             pointer-events: auto;
         }
 
@@ -986,8 +998,22 @@
                             </div>
                             
                             <div class="input-group full-width">
-                                <label>Día y Bloque (Puedes seleccionar varios)</label>
-                                <div class="blocks-grid" id="blocksContainer">
+                                <div style="font-weight: 500; font-size: 15px; color: var(--google-text-secondary); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                                    Día y Bloque (Puedes seleccionar varios)
+                                    <div style="display:flex; gap:12px; align-items:center;">
+                                        <!-- AUTOMATIZACIÓN 2: Flex-Routing Huecos -->
+                                        <select id="flexRoutingFilter" style="font-size:12px; padding:4px 8px; border-radius:4px; border:1px solid var(--google-border); outline:none; cursor:pointer;">
+                                            <option value="all">🔍 Todos los turnos</option>
+                                            <option value="am">🌅 Solo Mañanas</option>
+                                            <option value="pm">🌇 Solo Tardes</option>
+                                        </select>
+                                        <label style="font-size: 13px; color: var(--google-blue); display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600;">
+                                            <input type="checkbox" id="keepDataCheckbox" style="accent-color: var(--google-blue); width: 16px; height: 16px; cursor: pointer;">
+                                            ⚡ Multimateria
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="blocks-container" id="blocksContainer">
                                     <!-- Los chips interactivos se generan aquí -->
                                 </div>
                             </div>
@@ -1222,108 +1248,7 @@
         }
 
         async function loadData() {
-            // ==========================================
-        // AUTOMATIZACIÓN 3: PANEL DEL DIRECTOR
-        // ==========================================
-        function showDirectorAnalytics() {
-            let totalStudents = 0;
-            let criticalRooms = [];
-            let ghostRooms = [];
-            const studentCounts = {};
-
-            for (const subId in appData) {
-                for (const blockId in appData[subId]) {
-                    const students = appData[subId][blockId] || [];
-                    const realOccupancy = getRealOccupancy(subId, blockId);
-                    const max = getMaxStudents(subId);
-                    const b = BLOCKS.find(bl => bl.id === blockId);
-                    
-                    if (!b || realOccupancy === 0) continue;
-                    
-                    // Contar para top students (evitando dobles conteos del mismo nombre en el mismo curso)
-                    students.forEach(st => {
-                        const name = (st.name || st).trim().toLowerCase();
-                        if (!studentCounts[name]) studentCounts[name] = new Set();
-                        studentCounts[name].add(subId); // Registramos que ve esta materia
-                    });
-
-                    // Identificar salones
-                    const blockLabel = `${SUBJECTS[subId]} - ${b.days} ${b.time.split(' - ')[0]}`;
-                    if (realOccupancy === max || realOccupancy === max - 1) {
-                        criticalRooms.push(`${blockLabel} <span style="color:var(--google-red); font-weight:600;">(${realOccupancy}/${max})</span>`);
-                    } else if (realOccupancy <= 2) {
-                        ghostRooms.push(`${blockLabel} <span style="color:var(--brand-primary); font-weight:600;">(${realOccupancy}/${max})</span>`);
-                    }
-                }
-            }
-
-            // Filtrar top students
-            for (const [name, subjectsSet] of Object.entries(studentCounts)) {
-                totalStudents++;
-            }
-            
-            const topStudents = [];
-            for (const [name, subjectsSet] of Object.entries(studentCounts)) {
-                if (subjectsSet.size >= 3) {
-                    topStudents.push(`<span style="text-transform:capitalize;">${name}</span> <span style="color:var(--google-green); font-weight:600;">(${subjectsSet.size} materias)</span>`);
-                }
-            }
-
-            let htmlContent = `
-                <div style="display: grid; grid-template-columns: 1fr; gap: 15px; font-family: 'Inter', sans-serif;">
-                    <div style="background: var(--google-blue); color: white; padding: 15px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 28px; font-weight: 700;">${totalStudents}</div>
-                        <div style="font-size: 13px; opacity: 0.9;">Alumnos Únicos Activos</div>
-                    </div>
-                    
-                    <div style="background: #fce8e6; padding: 12px; border-radius: 8px; border-left: 4px solid var(--google-red);">
-                        <strong style="color: var(--google-red); font-size: 14px; display: flex; align-items: center; gap: 5px;"><span class="material-symbols-rounded" style="font-size:18px;">local_fire_department</span> Salones Críticos (Casi llenos)</strong>
-                        <div style="margin-top: 6px; font-size: 13px; color: var(--google-text-secondary); max-height: 80px; overflow-y: auto;">
-                            ${criticalRooms.length > 0 ? criticalRooms.join('<br>') : 'Ninguno por ahora.'}
-                        </div>
-                    </div>
-
-                    <div style="background: var(--brand-secondary); padding: 12px; border-radius: 8px; border-left: 4px solid var(--brand-primary);">
-                        <strong style="color: var(--brand-primary); font-size: 14px; display: flex; align-items: center; gap: 5px;"><span class="material-symbols-rounded" style="font-size:18px;">severe_cold</span> Salones Fríos (Baja matrícula)</strong>
-                        <div style="margin-top: 6px; font-size: 13px; color: var(--brand-primary); max-height: 80px; overflow-y: auto;">
-                            ${ghostRooms.length > 0 ? ghostRooms.join('<br>') : 'Ninguno por ahora.'}
-                        </div>
-                    </div>
-
-                    <div style="background: #e6f4ea; padding: 12px; border-radius: 8px; border-left: 4px solid var(--google-green);">
-                        <strong style="color: var(--google-green); font-size: 14px; display: flex; align-items: center; gap: 5px;"><span class="material-symbols-rounded" style="font-size:18px;">stars</span> Alumnos VIP (3+ materias)</strong>
-                        <div style="margin-top: 6px; font-size: 13px; color: #0d652d; max-height: 80px; overflow-y: auto;">
-                            ${topStudents.length > 0 ? topStudents.join('<br>') : 'Aún no hay VIPs.'}
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            showPremiumDialog({
-                title: '📊 Estado de la Academia',
-                message: '',
-                htmlContent: htmlContent,
-                type: 'info',
-                showCancel: false,
-                okText: 'Cerrar Panel'
-            });
-        }
-
-        // Agregar botón en el menú lateral
-        document.addEventListener('DOMContentLoaded', () => {
-            const sidebarNav = document.querySelector('.sidebar-nav');
-            const analyticsBtn = document.createElement('div');
-            analyticsBtn.className = 'nav-item';
-            analyticsBtn.innerHTML = '<span class="material-symbols-rounded">bar_chart</span>Estado (Analytics)';
-            analyticsBtn.onclick = (e) => {
-                e.preventDefault();
-                showDirectorAnalytics();
-            };
-            // Remove active class from others when clicked if needed, but since it's just a modal we can leave it as a button action
-            sidebarNav.appendChild(analyticsBtn);
-        });
-
-        // Inicialización vacía para evitar crasheos antes de cargar Firebase
+            // Inicialización vacía para evitar crasheos antes de cargar Firebase
             appData = {
                 'diseño': {}, 'capcut': {}, 'ia': {}, 'marketing': {}, 'excel': {}, 'wordpress': {}
             };
@@ -1595,6 +1520,12 @@
                 let shortTime = block.time.replace(/0(\d):/g, '$1:').replace(/ am/g, 'am').replace(/ pm/g, 'pm').replace(/ - /g, '-');
                 shortTime = shortTime.replace(/:00/g, ''); // Remover :00 para ahorrar espacio
 
+                // AUTOMATIZACIÓN 3: Visual Lock Anti-Colisión (Último cupo)
+                if (enrolled === max - 1) {
+                    chip.classList.add('last-seat-warning');
+                    chip.title = "⚠️ ¡Último cupo! Alguien más podría tomarlo.";
+                }
+
                 if (isFull) {
                     chip.innerHTML = `<div style="font-weight: 600; margin-bottom: 4px; pointer-events: none;">${shortDays}</div><div style="font-size: 12px; opacity: 0.8; pointer-events: none;">${shortTime}</div><div style="color: var(--google-red); font-size: 12px; margin-top: 6px; font-weight: 600; pointer-events: none;">Lleno</div>`;
                     chip.style.opacity = '0.5';
@@ -1728,6 +1659,11 @@
 
                     // Previsualización de Avatares Circulares
                     let avatarsHtml = '';
+                    // AUTOMATIZACIÓN 3: Visual Lock Anti-Colisión (Último cupo)
+                    if (count === max - 1) {
+                        card.classList.add('last-seat-warning');
+                    }
+
                     const directCount = students.length;
                     const displayCount = Math.min(directCount, 3);
                     for (let i = 0; i < displayCount; i++) {
@@ -1915,6 +1851,7 @@
             });
         };
 
+        // AUTOMATIZACIÓN 1: Swap de Estudiantes en Horarios Llenos
         window.moveStudent = function(subId, blockId, index) {
             const student = appData[subId][blockId][index];
             const name = student.name || student;
@@ -1925,29 +1862,57 @@
             BLOCKS.filter(b => b.subjects.includes(subId) && b.id !== blockId).forEach(b => {
                 const count = getRealOccupancy(subId, b.id);
                 const max = getMaxStudents(subId);
-                if (count < max) {
-                    optionsHtml += `<option value="${b.id}">${b.days} ${b.time.split(' - ')[0]}</option>`;
-                }
+                const isFull = count >= max;
+                const statusStr = isFull ? '(Lleno - Requiere SWAP)' : '(Libre)';
+                optionsHtml += `<option value="${b.id}" data-full="${isFull}">${b.days} ${b.time.split(' - ')[0]} ${statusStr}</option>`;
             });
             optionsHtml += '</select>';
 
+            // UI Para Swap Dinámico
+            optionsHtml += `
+                <div id="swapContainer" style="display:none; margin-top:15px; background:#fce8e6; padding:10px; border-radius:8px; border:1px solid var(--google-red);">
+                    <strong style="color:var(--google-red); font-size:13px; display:block; margin-bottom:5px;"><span class="material-symbols-rounded" style="font-size:16px; vertical-align:middle;">swap_horiz</span> El horario está Lleno. Selecciona al alumno que vas a desplazar:</strong>
+                    <select id="swapSelect" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--google-red); font-family: 'Inter', sans-serif; cursor:pointer; font-size:13px;"></select>
+                </div>
+            `;
+
             showPremiumDialog({
-                title: '🔄 Traslado Rápido',
+                title: '🔄 Traslado / Swap de Horario',
                 message: `Selecciona el nuevo horario para ${name}:`,
                 htmlContent: optionsHtml,
                 type: 'info',
                 showCancel: true,
-                okText: 'Trasladar'
+                okText: 'Proceder'
             }).then(confirmed => {
                 if (confirmed) {
-                    const newBlockId = document.getElementById('transferSelect').value;
-                    if (newBlockId) {
+                    const tSelect = document.getElementById('transferSelect');
+                    const newBlockId = tSelect.value;
+                    if (!newBlockId) return;
+
+                    const isFull = tSelect.options[tSelect.selectedIndex]?.dataset.full === 'true';
+                    const swapSelect = document.getElementById('swapSelect');
+
+                    if (isFull && swapSelect.value) {
+                        // Lógica de SWAP Mágico
+                        const swapIndex = parseInt(swapSelect.value);
+                        const swapStudent = appData[subId][newBlockId][swapIndex];
+                        
+                        const studentToMove = {...student, dayRestriction: 0, variant: null};
+                        const studentToBring = {...swapStudent, dayRestriction: 0, variant: null};
+
+                        appData[subId][newBlockId].splice(swapIndex, 1, studentToMove);
+                        appData[subId][blockId].splice(index, 1, studentToBring);
+                        
+                        saveData();
+                        renderFormSelect();
+                        renderGrid();
+                        closeModal();
+                        
+                    } else if (!isFull) {
+                        // Traslado Normal
                         if (!appData[subId][newBlockId]) appData[subId][newBlockId] = [];
                         
-                        const studentToMove = {...student};
-                        studentToMove.dayRestriction = 0;
-                        studentToMove.variant = null;
-                        
+                        const studentToMove = {...student, dayRestriction: 0, variant: null};
                         appData[subId][newBlockId].push(studentToMove);
                         appData[subId][blockId].splice(index, 1);
                         
@@ -1958,6 +1923,29 @@
                     }
                 }
             });
+
+            // Reactividad del Dialog
+            setTimeout(() => {
+                const tSelect = document.getElementById('transferSelect');
+                const swapCont = document.getElementById('swapContainer');
+                const swapSel = document.getElementById('swapSelect');
+                
+                if (tSelect) {
+                    tSelect.addEventListener('change', () => {
+                        const isFull = tSelect.options[tSelect.selectedIndex]?.dataset.full === 'true';
+                        if (isFull) {
+                            swapCont.style.display = 'block';
+                            swapSel.innerHTML = '';
+                            const targetStudents = appData[subId][tSelect.value] || [];
+                            targetStudents.forEach((st, i) => {
+                                swapSel.innerHTML += `<option value="${i}">${st.name || st}</option>`;
+                            });
+                        } else {
+                            swapCont.style.display = 'none';
+                        }
+                    });
+                }
+            }, 100);
         };
 
         /**
@@ -2216,6 +2204,12 @@
 
             menuBtn.addEventListener('click', toggleSidebar);
             mobileOverlay.addEventListener('click', toggleSidebar);
+
+            // AUTOMATIZACIÓN 2: Reactividad del Flex-Routing
+            const flexFilter = document.getElementById('flexRoutingFilter');
+            if (flexFilter) {
+                flexFilter.addEventListener('change', renderFormSelect);
+            }
 
             // Agregar botón en el menú lateral para ANALYTICS
             const sidebarNav = document.querySelector('.sidebar-nav');
