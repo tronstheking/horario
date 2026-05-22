@@ -908,15 +908,6 @@
                                 </select>
                             </div>
 
-                            <div class="form-group" id="dayRestrictionGroup">
-                                <label class="form-label">Días de Asistencia</label>
-                                <select id="studentDayRestriction" class="form-input">
-                                    <option value="0">Todos los días del bloque (Normal)</option>
-                                    <option value="1">Solo asiste el Primer Día (Ej: Lunes o Martes)</option>
-                                    <option value="2">Solo asiste el Segundo Día (Ej: Miércoles o Jueves)</option>
-                                </select>
-                            </div>
-
                             <div class="form-group">
                                 <label class="form-label">Nota u Observación (Opcional)</label>
                                 <input type="text" id="studentNote" class="form-input" placeholder="Ej: Solo asiste martes 2pm y jueves 3:30pm" autocomplete="off">
@@ -940,6 +931,7 @@
                                     <div class="chip selected" data-type="regular">Regulares (2 Días)</div>
                                     <div class="chip" data-type="intensive">Intensivos (1 Día)</div>
                                     <div class="chip" data-type="weekend">Fin de Semana</div>
+                                    <div class="chip" data-type="mixto">Mixtos / Especiales</div>
                                 </div>
                             </div>
                             
@@ -1098,7 +1090,12 @@
             { id: 'vie-1', days: 'Viernes', time: '09:00 am - 12:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
             { id: 'sab-1', days: 'Sábados', time: '09:00 am - 12:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
             { id: 'mkt-1', days: 'Viernes', time: '09:00 am - 01:00 pm', subjects: ['marketing'] },
-            { id: 'mkt-2', days: 'Sábados', time: '09:00 am - 01:00 pm', subjects: ['marketing'] }
+            { id: 'mkt-2', days: 'Sábados', time: '09:00 am - 01:00 pm', subjects: ['marketing'] },
+            
+            // Mixtos (Cajones genéricos para horarios cruzados)
+            { id: 'mix-1', days: 'Horario Mixto', time: 'Turnos Mañana (Varios)', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            { id: 'mix-2', days: 'Horario Mixto', time: 'Turnos Tarde (Varios)', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
+            { id: 'mix-3', days: 'Horario Mixto', time: 'Cruce Mañana/Tarde', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] }
         ];
 
         let appData = {};
@@ -1247,24 +1244,7 @@
 
         function getRealOccupancy(subId, blockId) {
             const data = appData[subId] || {};
-            const students = data[blockId] || [];
-            
-            // Calculamos ocupación real separando los alumnos que solo asisten un día
-            let day1Count = 0;
-            let day2Count = 0;
-            
-            students.forEach(s => {
-                if (s.dayRestriction === 1) {
-                    day1Count++;
-                } else if (s.dayRestriction === 2) {
-                    day2Count++;
-                } else {
-                    day1Count++;
-                    day2Count++;
-                }
-            });
-            
-            const baseCount = Math.max(day1Count, day2Count);
+            const baseCount = (data[blockId] || []).length;
             
             const overlaps = getOverlappingBlocks(blockId);
             
@@ -1459,9 +1439,6 @@
                     const name = student.name || student;
                     const date = student.date || 'Sin fecha';
                     const variant = student.variant ? `<span style="background: var(--google-disabled-bg); color: var(--google-text-secondary); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500; margin-left: 8px;">${student.variant}</span>` : '';
-                    let restrictionTag = '';
-                    if (student.dayRestriction === 1) restrictionTag = `<span style="background: var(--google-blue); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500; margin-left: 8px;">Solo Día 1</span>`;
-                    else if (student.dayRestriction === 2) restrictionTag = `<span style="background: var(--brand-secondary); color: var(--brand-primary); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500; margin-left: 8px;">Solo Día 2</span>`;
                     
                     const noteStr = student.note ? `<div style="font-size: 11px; color: var(--brand-secondary); margin-top: 4px; font-weight: 500; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-rounded" style="font-size: 14px;">info</span> ${student.note}</div>` : '';
                     const style = getAvatarColor(name);
@@ -1469,7 +1446,7 @@
                         <li class="student-item">
                             <div class="student-avatar" style="background-color:${style.bg}; color:${style.text}">${getInitials(name)}</div>
                             <div style="display: flex; flex-direction: column;">
-                                <div style="display: flex; align-items: center;"><span class="student-name">${name}</span>${variant}${restrictionTag}</div>
+                                <div style="display: flex; align-items: center;"><span class="student-name">${name}</span>${variant}</div>
                                 <span style="font-size: 11px; color: var(--google-text-secondary); margin-top: 2px;">Inscrito: ${date}</span>
                                 ${noteStr}
                             </div>
@@ -1721,11 +1698,9 @@
                 e.preventDefault();
                 const nameInput = document.getElementById('studentName');
                 const modalitySelect = document.getElementById('studentModality');
-                const restrictionSelect = document.getElementById('studentDayRestriction');
                 const noteInput = document.getElementById('studentNote');
                 const name = nameInput.value.trim();
                 const note = noteInput.value.trim();
-                const dayRestr = parseInt(restrictionSelect.value);
                 const selectedBlockChips = document.querySelectorAll('#blocksContainer .chip.selected');
 
                 if (!name) return;
@@ -1766,8 +1741,7 @@
                         name: name,
                         date: currentDate,
                         variant: variant,
-                        note: note !== '' ? note : null,
-                        dayRestriction: dayRestr
+                        note: note !== '' ? note : null
                     });
                 });
 
@@ -1775,7 +1749,6 @@
                 saveData();
                 nameInput.value = '';
                 noteInput.value = '';
-                restrictionSelect.value = "0";
                 
                 renderFormSelect();
                 renderGrid();
