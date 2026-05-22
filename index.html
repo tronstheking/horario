@@ -1324,6 +1324,12 @@
             }
 
             BLOCKS.filter(b => {
+                if (!b.subjects.includes(currentSelectedSubject)) return false;
+                if (currentScheduleType === 'regular') return b.id.startsWith('lm-') || b.id.startsWith('mj-');
+                if (currentScheduleType === 'intensive') return b.id.endsWith('-tarde') || b.id.endsWith('-man');
+                if (currentScheduleType === 'weekend') return b.id.startsWith('vs-') || b.id.startsWith('mkt-') || b.id.startsWith('vie-') || b.id.startsWith('sab-');
+                return false; // Mixto se maneja arriba
+            }).forEach(block => {
                 const enrolled = getRealOccupancy(currentSelectedSubject, block.id);
                 const max = getMaxStudents(currentSelectedSubject);
                 const isFull = enrolled >= max;
