@@ -249,9 +249,13 @@
 
         .form-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr auto;
-            gap: 20px;
-            align-items: end;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
         }
 
         .input-group {
@@ -286,6 +290,22 @@
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
+        }
+
+        .blocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+        }
+
+        .block-chip {
+            padding: 12px 8px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
         }
 
         .chip {
@@ -746,6 +766,25 @@
             .content-wrapper {
                 padding: 16px;
             }
+
+            .matrix-filters {
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+            }
+            .matrix-filters > select,
+            .matrix-filters > .chips-container {
+                width: 100%;
+            }
+            .matrix-filters .chips-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 8px;
+            }
+            .matrix-filters .chips-container .chip {
+                text-align: center;
+                padding: 10px 0;
+            }
         }
         
         .overlay-mobile {
@@ -851,52 +890,53 @@
                     <div class="form-collapse-inner">
                         <form id="registroForm" class="form-grid" style="padding-top: 4px;">
                             <div class="input-group">
-                        <label for="studentName">Nombre del Estudiante</label>
-                        <input type="text" id="studentName" class="form-input" placeholder="Ej. Carlos Pérez" required>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label>Asignatura</label>
-                        <div class="chips-container" id="subjectsContainer">
-                            <div class="chip selected" data-subject="diseño">Diseño</div>
-                            <div class="chip" data-subject="capcut">CapCut</div>
-                            <div class="chip" data-subject="ia">Inteligencia Artificial (IA)</div>
-                            <div class="chip" data-subject="marketing">Marketing Digital</div>
-                            <div class="chip" data-subject="excel">Excel</div>
-                            <div class="chip" data-subject="wordpress">WordPress</div>
-                        </div>
-                    </div>
-                    
-                    <div class="input-group" id="modalityGroup" style="display: flex;">
-                        <label>Especialidad / Modalidad</label>
-                        <select id="studentModality" class="form-input">
-                            <option value="Especialidad">Diseño Gráfico (Especialidad)</option>
-                            <option value="Redes Sociales">Diseño para Redes Sociales</option>
-                        </select>
-                    </div>
+                                <label for="studentName">Nombre del Estudiante</label>
+                                <input type="text" id="studentName" class="form-input" placeholder="Ej. Carlos Pérez" required>
+                            </div>
+                            
+                            <div class="input-group" id="modalityGroup" style="display: flex;">
+                                <label>Especialidad / Modalidad</label>
+                                <select id="studentModality" class="form-input">
+                                    <option value="Especialidad">Diseño Gráfico (Especialidad)</option>
+                                    <option value="Redes Sociales">Diseño para Redes Sociales</option>
+                                </select>
+                            </div>
 
-                    <div class="input-group">
-                        <label>Tipo de Horario</label>
-                        <div class="chips-container" id="scheduleTypeContainer">
-                            <div class="chip selected" data-type="regular">Regulares (2 Días)</div>
-                            <div class="chip" data-type="intensive">Intensivos (1 Día)</div>
-                            <div class="chip" data-type="weekend">Fin de Semana</div>
-                        </div>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label>Día y Bloque (Puedes seleccionar varios)</label>
-                        <div class="chips-container" id="blocksContainer">
-                            <!-- Los chips interactivos se generan aquí -->
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn-primary" id="submitBtn">
-                        <span class="material-symbols-rounded" style="font-size: 20px;">add</span>
-                        Registrar
-                    </button>
-                        </button>
-                    </form>
+                            <div class="input-group full-width">
+                                <label>Asignatura</label>
+                                <div class="chips-container" id="subjectsContainer">
+                                    <div class="chip selected" data-subject="diseño">Diseño</div>
+                                    <div class="chip" data-subject="capcut">CapCut</div>
+                                    <div class="chip" data-subject="ia">Inteligencia Artificial (IA)</div>
+                                    <div class="chip" data-subject="marketing">Marketing Digital</div>
+                                    <div class="chip" data-subject="excel">Excel</div>
+                                    <div class="chip" data-subject="wordpress">WordPress</div>
+                                </div>
+                            </div>
+                            
+                            <div class="input-group full-width">
+                                <label>Tipo de Horario</label>
+                                <div class="chips-container" id="scheduleTypeContainer">
+                                    <div class="chip selected" data-type="regular">Regulares (2 Días)</div>
+                                    <div class="chip" data-type="intensive">Intensivos (1 Día)</div>
+                                    <div class="chip" data-type="weekend">Fin de Semana</div>
+                                </div>
+                            </div>
+                            
+                            <div class="input-group full-width">
+                                <label>Día y Bloque (Puedes seleccionar varios)</label>
+                                <div class="blocks-grid" id="blocksContainer">
+                                    <!-- Los chips interactivos se generan aquí -->
+                                </div>
+                            </div>
+                            
+                            <div class="full-width" style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                                <button type="submit" class="btn-primary" id="submitBtn">
+                                    <span class="material-symbols-rounded" style="font-size: 20px;">add</span>
+                                    Registrar
+                                </button>
+                            </div>
+                        </form>
                 </div>
             </div>
             </section>
@@ -907,10 +947,35 @@
                     <span class="material-symbols-rounded" style="color: var(--google-blue);">grid_view</span>
                     <span id="gridTitle">Matriz Completa de Horarios</span>
                 </div>
-                <div class="chips-container" id="statusFilterContainer">
-                    <div class="chip selected" data-status="all">Todos</div>
-                    <div class="chip" data-status="available">Libres</div>
-                    <div class="chip" data-status="full">Llenos</div>
+                <div class="matrix-filters" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                    <select id="subjectFilter" class="form-input" style="padding: 10px 20px; border-radius: 100px; font-size: 14px; outline: none; background: rgba(255, 255, 255, 0.9); border: 1px solid var(--google-border); cursor: pointer; color: var(--google-text-secondary); font-family: 'Outfit', sans-serif; font-weight: 500;">
+                        <option value="all">📚 Todos los Cursos</option>
+                        <option value="diseño">Diseño</option>
+                        <option value="capcut">CapCut</option>
+                        <option value="ia">Inteligencia Artificial</option>
+                        <option value="marketing">Marketing Digital</option>
+                        <option value="excel">Excel</option>
+                        <option value="wordpress">WordPress</option>
+                    </select>
+                    <select id="dayFilter" class="form-input" style="padding: 10px 20px; border-radius: 100px; font-size: 14px; outline: none; background: rgba(255, 255, 255, 0.9); border: 1px solid var(--google-border); cursor: pointer; color: var(--google-text-secondary); font-family: 'Outfit', sans-serif; font-weight: 500;">
+                        <option value="all">📅 Todos los Días</option>
+                        <option value="Lunes">Lunes</option>
+                        <option value="Martes">Martes</option>
+                        <option value="Miércoles">Miércoles</option>
+                        <option value="Jueves">Jueves</option>
+                        <option value="Viernes">Viernes</option>
+                        <option value="Sábados">Sábados</option>
+                    </select>
+                    <select id="timeFilter" class="form-input" style="padding: 10px 20px; border-radius: 100px; font-size: 14px; outline: none; background: rgba(255, 255, 255, 0.9); border: 1px solid var(--google-border); cursor: pointer; color: var(--google-text-secondary); font-family: 'Outfit', sans-serif; font-weight: 500;">
+                        <option value="all">⏰ Todos los Turnos</option>
+                        <option value="am">Mañana</option>
+                        <option value="pm">Tarde</option>
+                    </select>
+                    <div class="chips-container" id="statusFilterContainer">
+                        <div class="chip selected" data-status="all">Todos</div>
+                        <div class="chip" data-status="available">Libres</div>
+                        <div class="chip" data-status="full">Llenos</div>
+                    </div>
                 </div>
             </div>
             
@@ -975,6 +1040,7 @@
         function getMaxStudents(subId) {
             if (subId === 'marketing') return 12;
             if (subId === 'capcut') return 4;
+            if (subId === 'diseño') return 6;
             return 8;
         }
         
@@ -1020,6 +1086,9 @@
         let currentScheduleType = 'regular';   
         let currentActiveFilter = 'all';       
         let currentStatusFilter = 'all';       
+        let currentDayFilter = 'all';
+        let currentSubjectFilter = 'all';
+        let currentTimeFilter = 'all';
 
         /**
          * --- INICIALIZACIÓN ---
@@ -1141,6 +1210,34 @@
             return { bg: colors[index], text: textColors[index] };
         }
 
+        function getOverlappingBlocks(blockId) {
+            switch (blockId) {
+                case 'lm-1': case 'lm-2': return ['lun-man', 'mie-man'];
+                case 'lm-3': case 'lm-4': return ['lun-tarde', 'mie-tarde'];
+                case 'mj-1': case 'mj-2': return ['mar-man', 'jue-man'];
+                case 'mj-3': case 'mj-4': return ['mar-tarde', 'jue-tarde'];
+                
+                case 'lun-man': case 'mie-man': return ['lm-1', 'lm-2'];
+                case 'lun-tarde': case 'mie-tarde': return ['lm-3', 'lm-4'];
+                case 'mar-man': case 'jue-man': return ['mj-1', 'mj-2'];
+                case 'mar-tarde': case 'jue-tarde': return ['mj-3', 'mj-4'];
+            }
+            return [];
+        }
+
+        function getRealOccupancy(subId, blockId) {
+            const data = appData[subId] || {};
+            const baseCount = (data[blockId] || []).length;
+            const overlaps = getOverlappingBlocks(blockId);
+            
+            if (overlaps.length === 2) {
+                const count1 = (data[overlaps[0]] || []).length;
+                const count2 = (data[overlaps[1]] || []).length;
+                return baseCount + Math.max(count1, count2);
+            }
+            return baseCount;
+        }
+
         /**
          * --- RENDERIZADO DEL SELECTOR DEL FORMULARIO ---
          */
@@ -1158,7 +1255,7 @@
                 if (currentScheduleType === 'weekend') return b.id.startsWith('vs-') || b.id.startsWith('mkt-') || b.id.startsWith('vie-') || b.id.startsWith('sab-');
                 return true;
             }).forEach(block => {
-                const enrolled = appData[currentSelectedSubject][block.id]?.length || 0;
+                const enrolled = getRealOccupancy(currentSelectedSubject, block.id);
                 const max = getMaxStudents(currentSelectedSubject);
                 const isFull = enrolled >= max;
                 
@@ -1168,14 +1265,15 @@
                 
                 // Acortar textos para mobile
                 const shortDays = block.days.replace('Lunes', 'Lun').replace('Martes', 'Mar').replace('Miércoles', 'Mié').replace('Jueves', 'Jue').replace('Viernes', 'Vie').replace('Sábados', 'Sáb');
-                const shortTime = block.time.replace(/0(\d):/g, '$1:').replace(/ am/g, 'am').replace(/ pm/g, 'pm').replace(/ - /g, '-');
-                
+                let shortTime = block.time.replace(/0(\d):/g, '$1:').replace(/ am/g, 'am').replace(/ pm/g, 'pm').replace(/ - /g, '-');
+                shortTime = shortTime.replace(/:00/g, ''); // Remover :00 para ahorrar espacio
+
                 if (isFull) {
-                    chip.innerHTML = `<span style="color: var(--google-red);">❌</span> ${shortDays}, ${shortTime} (Lleno)`;
+                    chip.innerHTML = `<div style="font-weight: 600; margin-bottom: 4px;">${shortDays}</div><div style="font-size: 12px; opacity: 0.8;">${shortTime}</div><div style="color: var(--google-red); font-size: 12px; margin-top: 6px; font-weight: 600;">Lleno</div>`;
                     chip.style.opacity = '0.5';
                     chip.style.cursor = 'not-allowed';
                 } else {
-                    chip.textContent = `${shortDays}, ${shortTime} (${enrolled}/${max})`;
+                    chip.innerHTML = `<div style="font-weight: 600; margin-bottom: 4px;">${shortDays}</div><div style="font-size: 12px; opacity: 0.8;">${shortTime}</div><div style="font-size: 12px; margin-top: 6px; font-weight: 600;">${enrolled}/${max}</div>`;
                     hasAvailable = true;
                     chip.addEventListener('click', () => {
                         chip.classList.toggle('selected');
@@ -1206,9 +1304,13 @@
             grid.innerHTML = '';
 
             // Decidir qué asignaturas renderizar según el filtro del Sidebar
-            const subjectsToRender = currentActiveFilter === 'all' 
+            let subjectsToRender = currentActiveFilter === 'all' 
                 ? Object.keys(SUBJECTS) 
                 : [currentActiveFilter];
+
+            if (currentActiveFilter === 'all' && currentSubjectFilter !== 'all') {
+                subjectsToRender = [currentSubjectFilter];
+            }
 
             subjectsToRender.forEach(subId => {
                 const subName = SUBJECTS[subId];
@@ -1225,13 +1327,28 @@
                         if (!hasMatch) return; // Ocultar tarjeta si no contiene al estudiante buscado
                     }
 
-                    const count = students.length;
+                    const count = getRealOccupancy(subId, block.id);
                     const max = getMaxStudents(subId);
                     const isFull = count >= max;
 
                     // Lógica de Filtro por Estado
                     if (currentStatusFilter === 'available' && isFull) return;
                     if (currentStatusFilter === 'full' && !isFull) return;
+
+                    // Lógica de Filtro por Día
+                    if (currentDayFilter !== 'all') {
+                        if (currentDayFilter === 'Lunes' && (block.days === 'Lunes' || block.days === 'Lun-Mié')) {}
+                        else if (currentDayFilter === 'Martes' && (block.days === 'Martes' || block.days === 'Mar-Jue')) {}
+                        else if (currentDayFilter === 'Miércoles' && (block.days === 'Miércoles' || block.days === 'Lun-Mié')) {}
+                        else if (currentDayFilter === 'Jueves' && (block.days === 'Jueves' || block.days === 'Mar-Jue')) {}
+                        else if (block.days !== currentDayFilter) return;
+                    }
+
+                    // Lógica de Filtro por Turno
+                    if (currentTimeFilter !== 'all') {
+                        if (currentTimeFilter === 'am' && !block.time.includes('09:00 am') && !block.time.includes('11:00 am')) return;
+                        if (currentTimeFilter === 'pm' && !block.time.includes('02:00 pm') && !block.time.includes('03:30 pm')) return;
+                    }
 
                     const card = document.createElement('div');
                     card.className = `card ${isFull ? 'full' : ''}`;
@@ -1241,14 +1358,18 @@
 
                     // Previsualización de Avatares Circulares
                     let avatarsHtml = '';
-                    const displayCount = Math.min(count, 3);
+                    const directCount = students.length;
+                    const displayCount = Math.min(directCount, 3);
                     for (let i = 0; i < displayCount; i++) {
                         const studentName = students[i].name || students[i];
                         const style = getAvatarColor(studentName);
                         avatarsHtml += `<div class="avatar-mini" style="background-color:${style.bg}; color:${style.text}">${getInitials(studentName)}</div>`;
                     }
-                    if (count > 3) {
-                        avatarsHtml += `<div class="avatar-mini more">+${count - 3}</div>`;
+                    if (count > directCount) {
+                        const extra = count - displayCount;
+                        avatarsHtml += `<div class="avatar-mini more" title="Estudiantes de turnos solapados">+${extra}</div>`;
+                    } else if (directCount > 3) {
+                        avatarsHtml += `<div class="avatar-mini more">+${directCount - 3}</div>`;
                     }
 
                     card.innerHTML = `
@@ -1492,6 +1613,33 @@
                 });
             });
 
+            // 2.6 Manejo del Filtro de Día
+            const dayFilterSelect = document.getElementById('dayFilter');
+            if (dayFilterSelect) {
+                dayFilterSelect.addEventListener('change', (e) => {
+                    currentDayFilter = e.target.value;
+                    renderGrid();
+                });
+            }
+
+            // 2.7 Manejo del Filtro de Curso
+            const subjectFilterSelect = document.getElementById('subjectFilter');
+            if (subjectFilterSelect) {
+                subjectFilterSelect.addEventListener('change', (e) => {
+                    currentSubjectFilter = e.target.value;
+                    renderGrid();
+                });
+            }
+
+            // 2.8 Manejo del Filtro de Turno
+            const timeFilterSelect = document.getElementById('timeFilter');
+            if (timeFilterSelect) {
+                timeFilterSelect.addEventListener('change', (e) => {
+                    currentTimeFilter = e.target.value;
+                    renderGrid();
+                });
+            }
+
             navItems.forEach(item => {
                 item.addEventListener('click', () => {
                     navItems.forEach(i => i.classList.remove('active'));
@@ -1502,10 +1650,12 @@
                     if (currentActiveFilter === 'all') {
                         formSection.classList.remove('hidden');
                         gridTitle.textContent = "Matriz Completa de Horarios";
+                        if (subjectFilterSelect) subjectFilterSelect.style.display = 'block';
                     } else {
                         // Si se filtra por aula específica, ocultamos el formulario para mejor UI y enfocamos el Grid
                         formSection.classList.add('hidden');
                         gridTitle.textContent = `Horarios Asignados para: ${SUBJECTS[currentActiveFilter]}`;
+                        if (subjectFilterSelect) subjectFilterSelect.style.display = 'none';
                     }
                     
                     renderGrid();
@@ -1541,7 +1691,7 @@
                 // Validación de seguridad por cupos máximos
                 selectedBlockChips.forEach(chip => {
                     const blockId = chip.dataset.blockId;
-                    if (appData[currentSelectedSubject][blockId].length >= max) {
+                    if (getRealOccupancy(currentSelectedSubject, blockId) >= max) {
                         errors = true;
                     }
                 });
