@@ -1090,27 +1090,7 @@
             { id: 'vie-1', days: 'Viernes', time: '09:00 am - 12:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
             { id: 'sab-1', days: 'Sábados', time: '09:00 am - 12:00 pm', subjects: ['diseño', 'capcut', 'ia', 'excel', 'wordpress'] },
             { id: 'mkt-1', days: 'Viernes', time: '09:00 am - 01:00 pm', subjects: ['marketing'] },
-            { id: 'mkt-2', days: 'Sábados', time: '09:00 am - 01:00 pm', subjects: ['marketing'] },
-            // Mixtos (Días Individuales)
-            { id: 'l-1', days: 'Lunes', time: '09:00 am - 11:00 am', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            { id: 'l-2', days: 'Lunes', time: '11:00 am - 01:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            { id: 'l-3', days: 'Lunes', time: '02:00 pm - 03:30 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            { id: 'l-4', days: 'Lunes', time: '03:30 pm - 05:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            
-            { id: 'm-1', days: 'Martes', time: '09:00 am - 11:00 am', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            { id: 'm-2', days: 'Martes', time: '11:00 am - 01:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            { id: 'm-3', days: 'Martes', time: '02:00 pm - 03:30 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            { id: 'm-4', days: 'Martes', time: '03:30 pm - 05:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            
-            { id: 'mi-1', days: 'Miércoles', time: '09:00 am - 11:00 am', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            { id: 'mi-2', days: 'Miércoles', time: '11:00 am - 01:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            { id: 'mi-3', days: 'Miércoles', time: '02:00 pm - 03:30 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            { id: 'mi-4', days: 'Miércoles', time: '03:30 pm - 05:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            
-            { id: 'j-1', days: 'Jueves', time: '09:00 am - 11:00 am', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            { id: 'j-2', days: 'Jueves', time: '11:00 am - 01:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            { id: 'j-3', days: 'Jueves', time: '02:00 pm - 03:30 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] },
-            { id: 'j-4', days: 'Jueves', time: '03:30 pm - 05:00 pm', type: 'mixto', subjects: ['diseño', 'capcut', 'ia', 'marketing', 'excel', 'wordpress'] }
+            { id: 'mkt-2', days: 'Sábados', time: '09:00 am - 01:00 pm', subjects: ['marketing'] }
         ];
 
         let appData = {};
@@ -1244,53 +1224,36 @@
 
         function getOverlappingBlocks(blockId) {
             switch (blockId) {
-                // Regulares (solapan con intensivos y con individuales mixtos)
-                case 'lm-1': return ['lun-man', 'mie-man', 'l-1', 'mi-1'];
-                case 'lm-2': return ['lun-man', 'mie-man', 'l-2', 'mi-2'];
-                case 'lm-3': return ['lun-tarde', 'mie-tarde', 'l-3', 'mi-3'];
-                case 'lm-4': return ['lun-tarde', 'mie-tarde', 'l-4', 'mi-4'];
-                case 'mj-1': return ['mar-man', 'jue-man', 'm-1', 'j-1'];
-                case 'mj-2': return ['mar-man', 'jue-man', 'm-2', 'j-2'];
-                case 'mj-3': return ['mar-tarde', 'jue-tarde', 'm-3', 'j-3'];
-                case 'mj-4': return ['mar-tarde', 'jue-tarde', 'm-4', 'j-4'];
+                case 'lm-1': case 'lm-2': return ['lun-man', 'mie-man'];
+                case 'lm-3': case 'lm-4': return ['lun-tarde', 'mie-tarde'];
+                case 'mj-1': case 'mj-2': return ['mar-man', 'jue-man'];
+                case 'mj-3': case 'mj-4': return ['mar-tarde', 'jue-tarde'];
                 
-                // Intensivos (solapan con regulares e individuales mixtos)
-                case 'lun-man': return ['lm-1', 'lm-2', 'l-1', 'l-2'];
-                case 'lun-tarde': return ['lm-3', 'lm-4', 'l-3', 'l-4'];
-                case 'mie-man': return ['lm-1', 'lm-2', 'mi-1', 'mi-2'];
-                case 'mie-tarde': return ['lm-3', 'lm-4', 'mi-3', 'mi-4'];
-                case 'mar-man': return ['mj-1', 'mj-2', 'm-1', 'm-2'];
-                case 'mar-tarde': return ['mj-3', 'mj-4', 'm-3', 'm-4'];
-                case 'jue-man': return ['mj-1', 'mj-2', 'j-1', 'j-2'];
-                case 'jue-tarde': return ['mj-3', 'mj-4', 'j-3', 'j-4'];
-                
-                // Individuales mixtos (solapan con regulares e intensivos)
-                case 'l-1': return ['lm-1', 'lun-man'];
-                case 'l-2': return ['lm-2', 'lun-man'];
-                case 'l-3': return ['lm-3', 'lun-tarde'];
-                case 'l-4': return ['lm-4', 'lun-tarde'];
-                case 'm-1': return ['mj-1', 'mar-man'];
-                case 'm-2': return ['mj-2', 'mar-man'];
-                case 'm-3': return ['mj-3', 'mar-tarde'];
-                case 'm-4': return ['mj-4', 'mar-tarde'];
-                case 'mi-1': return ['lm-1', 'mie-man'];
-                case 'mi-2': return ['lm-2', 'mie-man'];
-                case 'mi-3': return ['lm-3', 'mie-tarde'];
-                case 'mi-4': return ['lm-4', 'mie-tarde'];
-                case 'j-1': return ['mj-1', 'jue-man'];
-                case 'j-2': return ['mj-2', 'jue-man'];
-                case 'j-3': return ['mj-3', 'jue-tarde'];
-                case 'j-4': return ['mj-4', 'jue-tarde'];
+                case 'lun-man': case 'mie-man': return ['lm-1', 'lm-2'];
+                case 'lun-tarde': case 'mie-tarde': return ['lm-3', 'lm-4'];
+                case 'mar-man': case 'jue-man': return ['mj-1', 'mj-2'];
+                case 'mar-tarde': case 'jue-tarde': return ['mj-3', 'mj-4'];
             }
             return [];
         }
 
         function getRealOccupancy(subId, blockId) {
             const data = appData[subId] || {};
-            const baseCount = (data[blockId] || []).length;
+            const students = data[blockId] || [];
+            
+            // Calculamos ocupación real considerando restricciones de día
+            let day1Count = 0;
+            let day2Count = 0;
+            
+            students.forEach(s => {
+                if (s.dayRestriction === 1) day1Count++;
+                else if (s.dayRestriction === 2) day2Count++;
+                else { day1Count++; day2Count++; }
+            });
+            
+            const baseCount = Math.max(day1Count, day2Count);
             
             const overlaps = getOverlappingBlocks(blockId);
-            
             let maxOverlap = 0;
             overlaps.forEach(overId => {
                 const count = (data[overId] || []).length;
@@ -1310,14 +1273,57 @@
             
             let hasAvailable = false;
 
+            if (currentScheduleType === 'mixto') {
+                // Generar tarjetas individuales para cada día
+                const mixedSlots = [
+                    { id: 'lm-1', dayRestr: 1, dayLabel: 'Lunes', timeLabel: '09:00 am - 11:00 am' },
+                    { id: 'lm-2', dayRestr: 1, dayLabel: 'Lunes', timeLabel: '11:00 am - 01:00 pm' },
+                    { id: 'lm-3', dayRestr: 1, dayLabel: 'Lunes', timeLabel: '02:00 pm - 03:30 pm' },
+                    { id: 'lm-4', dayRestr: 1, dayLabel: 'Lunes', timeLabel: '03:30 pm - 05:00 pm' },
+                    { id: 'mj-1', dayRestr: 1, dayLabel: 'Martes', timeLabel: '09:00 am - 11:00 am' },
+                    { id: 'mj-2', dayRestr: 1, dayLabel: 'Martes', timeLabel: '11:00 am - 01:00 pm' },
+                    { id: 'mj-3', dayRestr: 1, dayLabel: 'Martes', timeLabel: '02:00 pm - 03:30 pm' },
+                    { id: 'mj-4', dayRestr: 1, dayLabel: 'Martes', timeLabel: '03:30 pm - 05:00 pm' },
+                    { id: 'lm-1', dayRestr: 2, dayLabel: 'Miércoles', timeLabel: '09:00 am - 11:00 am' },
+                    { id: 'lm-2', dayRestr: 2, dayLabel: 'Miércoles', timeLabel: '11:00 am - 01:00 pm' },
+                    { id: 'lm-3', dayRestr: 2, dayLabel: 'Miércoles', timeLabel: '02:00 pm - 03:30 pm' },
+                    { id: 'lm-4', dayRestr: 2, dayLabel: 'Miércoles', timeLabel: '03:30 pm - 05:00 pm' },
+                    { id: 'mj-1', dayRestr: 2, dayLabel: 'Jueves', timeLabel: '09:00 am - 11:00 am' },
+                    { id: 'mj-2', dayRestr: 2, dayLabel: 'Jueves', timeLabel: '11:00 am - 01:00 pm' },
+                    { id: 'mj-3', dayRestr: 2, dayLabel: 'Jueves', timeLabel: '02:00 pm - 03:30 pm' },
+                    { id: 'mj-4', dayRestr: 2, dayLabel: 'Jueves', timeLabel: '03:30 pm - 05:00 pm' }
+                ];
+                
+                mixedSlots.forEach(slot => {
+                    const baseBlock = BLOCKS.find(b => b.id === slot.id);
+                    if (!baseBlock || !baseBlock.subjects.includes(currentSelectedSubject)) return;
+                    
+                    const enrolled = getRealOccupancy(currentSelectedSubject, slot.id);
+                    const max = getMaxStudents(currentSelectedSubject);
+                    const isFull = enrolled >= max;
+                    
+                    const chip = document.createElement('div');
+                    chip.className = `chip ${isFull ? 'full' : ''}`;
+                    chip.dataset.blockId = slot.id;
+                    chip.dataset.dayRestr = slot.dayRestr;
+                    
+                    chip.innerHTML = `<div style="font-weight: 600; margin-bottom: 4px; pointer-events: none;">${slot.dayLabel}</div><div style="font-size: 12px; opacity: 0.8; pointer-events: none;">${slot.timeLabel}</div><div style="font-size: 12px; margin-top: 6px; font-weight: 600; pointer-events: none;">${enrolled}/${max}</div>`;
+                    
+                    if (!isFull) {
+                        hasAvailable = true;
+                        chip.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            chip.classList.toggle('selected');
+                        });
+                    }
+                    container.appendChild(chip);
+                });
+                
+                submitBtn.disabled = !hasAvailable;
+                return;
+            }
+
             BLOCKS.filter(b => {
-                if (!b.subjects.includes(currentSelectedSubject)) return false;
-                if (currentScheduleType === 'regular') return b.id.startsWith('lm-') || b.id.startsWith('mj-');
-                if (currentScheduleType === 'intensive') return b.id.endsWith('-tarde') || b.id.endsWith('-man');
-                if (currentScheduleType === 'weekend') return b.id.startsWith('vs-') || b.id.startsWith('mkt-') || b.id.startsWith('vie-') || b.id.startsWith('sab-');
-                if (currentScheduleType === 'mixto') return b.type === 'mixto';
-                return true;
-            }).forEach(block => {
                 const enrolled = getRealOccupancy(currentSelectedSubject, block.id);
                 const max = getMaxStudents(currentSelectedSubject);
                 const isFull = enrolled >= max;
@@ -1485,13 +1491,22 @@
                     const date = student.date || 'Sin fecha';
                     const variant = student.variant ? `<span style="background: var(--google-disabled-bg); color: var(--google-text-secondary); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500; margin-left: 8px;">${student.variant}</span>` : '';
                     
+                    let restrictionTag = '';
+                    if (student.dayRestriction === 1) {
+                        const dayName = block.days === 'Lun-Mié' ? 'Lunes' : (block.days === 'Mar-Jue' ? 'Martes' : 'Día 1');
+                        restrictionTag = `<span style="background: var(--google-blue); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500; margin-left: 8px;">Solo ${dayName}</span>`;
+                    } else if (student.dayRestriction === 2) {
+                        const dayName = block.days === 'Lun-Mié' ? 'Miércoles' : (block.days === 'Mar-Jue' ? 'Jueves' : 'Día 2');
+                        restrictionTag = `<span style="background: var(--brand-secondary); color: var(--brand-primary); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500; margin-left: 8px;">Solo ${dayName}</span>`;
+                    }
+                    
                     const noteStr = student.note ? `<div style="font-size: 11px; color: var(--brand-secondary); margin-top: 4px; font-weight: 500; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-rounded" style="font-size: 14px;">info</span> ${student.note}</div>` : '';
                     const style = getAvatarColor(name);
                     list.innerHTML += `
                         <li class="student-item">
                             <div class="student-avatar" style="background-color:${style.bg}; color:${style.text}">${getInitials(name)}</div>
                             <div style="display: flex; flex-direction: column;">
-                                <div style="display: flex; align-items: center;"><span class="student-name">${name}</span>${variant}</div>
+                                <div style="display: flex; align-items: center;"><span class="student-name">${name}</span>${variant}${restrictionTag}</div>
                                 <span style="font-size: 11px; color: var(--google-text-secondary); margin-top: 2px;">Inscrito: ${date}</span>
                                 ${noteStr}
                             </div>
@@ -1779,6 +1794,7 @@
                 // Insertar alumno de forma reactiva
                 selectedBlockChips.forEach(chip => {
                     const blockId = chip.dataset.blockId;
+                    const dayRestr = chip.dataset.dayRestr ? parseInt(chip.dataset.dayRestr) : 0;
                     if (!appData[currentSelectedSubject][blockId]) {
                         appData[currentSelectedSubject][blockId] = [];
                     }
@@ -1786,7 +1802,8 @@
                         name: name,
                         date: currentDate,
                         variant: variant,
-                        note: note !== '' ? note : null
+                        note: note !== '' ? note : null,
+                        dayRestriction: dayRestr
                     });
                 });
 
