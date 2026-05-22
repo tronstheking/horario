@@ -1978,7 +1978,8 @@
                         blocks.forEach(block => {
                             if (block.subjects.some(subId => {
                                 if (!subjectsToRender.includes(subId)) return false;
-                                return getRealOccupancy(subId, block.id) > 0;
+                                const students = (appData[subId] && appData[subId][block.id]) || [];
+                                return students.length > 0;
                             })) {
                                 hasValidSubjects = true;
                             }
@@ -2015,7 +2016,8 @@
                         timesInDay[time].forEach(block => {
                             if (block.subjects.some(subId => {
                                 if (!subjectsToRender.includes(subId)) return false;
-                                return getRealOccupancy(subId, block.id) > 0;
+                                const students = (appData[subId] && appData[subId][block.id]) || [];
+                                return students.length > 0;
                             })) {
                                 timeHasValidSubjects = true;
                             }
@@ -2031,9 +2033,10 @@
                         blocks.forEach(block => {
                             block.subjects.forEach(subId => {
                                 if (!subjectsToRender.includes(subId)) return;
-                                const count = getRealOccupancy(subId, block.id);
-                                if (count === 0) return; // No mostrar materias vacías
+                                const students = (appData[subId] && appData[subId][block.id]) || [];
+                                if (students.length === 0) return; // No mostrar materias vacías
                                 
+                                const count = getRealOccupancy(subId, block.id);
                                 const max = getMaxStudents(subId);
                                 const isFull = count >= max;
                                 
