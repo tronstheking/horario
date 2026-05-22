@@ -952,7 +952,23 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        // Configuración de Firebase del usuario
+        const firebaseConfig = {
+            apiKey: "AIzaSyBR_bBM33Gq2ULA5pDvVVPWwiPwcd4LR5I",
+            authDomain: "horario-c4d9b.firebaseapp.com",
+            projectId: "horario-c4d9b",
+            storageBucket: "horario-c4d9b.firebasestorage.app",
+            messagingSenderId: "636438563539",
+            appId: "1:636438563539:web:1dbec07541ccc273076226"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         /**
          * --- DATOS Y CONSTANTES ---
          */
@@ -1000,17 +1016,17 @@
         ];
 
         let appData = {};
-        let currentSelectedSubject = 'diseño'; // Materia activa en el formulario
-        let currentScheduleType = 'regular';   // Tipo de horario activo en el formulario
-        let currentActiveFilter = 'all';       // Filtro del Sidebar General
-        let currentStatusFilter = 'all';       // Filtro de estado de capacidad
+        let currentSelectedSubject = 'diseño'; 
+        let currentScheduleType = 'regular';   
+        let currentActiveFilter = 'all';       
+        let currentStatusFilter = 'all';       
 
         /**
          * --- INICIALIZACIÓN ---
          */
-        function initApp() {
+        async function initApp() {
             setupLogin();
-            loadData();
+            await loadData();
             setupEventListeners();
             renderFormSelect();
             renderGrid();
@@ -1052,80 +1068,50 @@
             setInterval(update, 1000);
         }
 
-        function loadData() {
-            const stored = localStorage.getItem('academia_horarios');
-            if (stored) {
-                appData = JSON.parse(stored);
-                // Asegurar que las nuevas asignaturas se inicialicen si es la primera vez que se cargan sobre datos antiguos
-                for (const sub in SUBJECTS) {
-                    if (!appData[sub]) {
-                        appData[sub] = {};
-                        BLOCKS.filter(b => b.subjects.includes(sub)).forEach(b => {
-                            appData[sub][b.id] = [];
-                        });
-                    } else {
-                        // Asegurar que bloques recién agregados existan y migrar strings a objetos
-                        BLOCKS.filter(b => b.subjects.includes(sub)).forEach(b => {
-                            if (!appData[sub][b.id]) {
-                                appData[sub][b.id] = [];
-                                
-                                // MIGRACIÓN: Pasar los datos antiguos de lj- a lm- y de vs-1 a sab-1
-                                const oldId = b.id.replace('lm-', 'lj-');
-                                if (b.id.startsWith('lm-') && appData[sub][oldId]) {
-                                    appData[sub][b.id] = [...appData[sub][oldId]];
-                                }
-                                if (b.id === 'sab-1' && appData[sub]['vs-1']) {
-                                    appData[sub][b.id] = [...appData[sub]['vs-1']];
-                                }
-                            }
-                            
-                            appData[sub][b.id] = appData[sub][b.id].map(student => {
-                                if (typeof student === 'string') {
-                                    return { name: student, date: 'Sin fecha' };
-                                }
-                                return student;
-                            });
-                        });
-                        
-                        // Limpiar los horarios viejos para ahorrar espacio
-                        Object.keys(appData[sub]).forEach(k => {
-                            if (k.startsWith('lj-') || k === 'vs-1') delete appData[sub][k];
-                        });
-                    }
-                }
-            } else {
-                appData = {
-                    'diseño': {},
-                    'capcut': {},
-                    'ia': {},
-                    'marketing': {},
-                    'excel': {},
-                    'wordpress': {}
-                };
-                
-                for (const sub in SUBJECTS) {
-                    BLOCKS.filter(b => b.subjects.includes(sub)).forEach(b => {
-                        appData[sub][b.id] = [];
-                    });
-                }
-
-                // Datos semilla solicitados
-                const seedDate = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-                appData['capcut']['lm-2'] = [
-                    {name: "Ana García", date: seedDate}, {name: "Carlos López", date: seedDate}, 
-                    {name: "María Pérez", date: seedDate}, {name: "Juan Díaz", date: seedDate},
-                    {name: "Elena Torres", date: seedDate}, {name: "Pedro Sánchez", date: seedDate}, 
-                    {name: "Laura Gómez", date: seedDate}, {name: "Luis Romero", date: seedDate}
-                ];
-                appData['diseño']['lm-1'] = [{name: "Sofía Ruiz", date: seedDate}, {name: "Martín Castro", date: seedDate}, {name: "Lucía Vargas", date: seedDate}];
-                appData['ia']['sab-1'] = [{name: "Diego Flores", date: seedDate}, {name: "Valentina Ríos", date: seedDate}];
-
-                saveData();
+        async function loadData() {
+            // Inicialización vacía para evitar crasheos antes de cargar Firebase
+            appData = {
+                'diseño': {}, 'capcut': {}, 'ia': {}, 'marketing': {}, 'excel': {}, 'wordpress': {}
+            };
+            for (const sub in SUBJECTS) {
+                BLOCKS.filter(b => b.subjects.includes(sub)).forEach(b => {
+                    appData[sub][b.id] = [];
+                });
             }
+
+            const docRef = doc(db, "academia", "horarios");
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                appData = docSnap.data();
+            } else {
+                // MIGRACIÓN: Si la BD está vacía, subir los datos que teníamos en localStorage
+                const stored = localStorage.getItem('academia_horarios');
+                if (stored) {
+                    appData = JSON.parse(stored);
+                    console.log("Migrando de localStorage a Firebase...");
+                }
+                await setDoc(docRef, appData);
+            }
+
+            // Sincronización en tiempo real
+            onSnapshot(docRef, (snap) => {
+                if (snap.exists()) {
+                    appData = snap.data();
+                    renderFormSelect();
+                    renderGrid();
+                    // Opcional: Actualizar modal si estuviera abierto (se podría redibujar aquí)
+                }
+            });
         }
 
-        function saveData() {
+        async function saveData() {
+            // Guardar localmente como backup rápido (offline cache)
             localStorage.setItem('academia_horarios', JSON.stringify(appData));
+            
+            // Subir a Firebase
+            const docRef = doc(db, "academia", "horarios");
+            await setDoc(docRef, appData);
         }
 
         /**
