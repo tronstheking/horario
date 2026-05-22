@@ -1972,11 +1972,14 @@
                 Object.keys(dayGroups).forEach(day => {
                     const timesInDay = dayGroups[day];
                     
-                    // Solo renderizar el día si tiene al menos un bloque con asignaturas válidas
+                    // Solo renderizar el día si tiene al menos un bloque con asignaturas válidas (>0 alumnos)
                     let hasValidSubjects = false;
                     Object.values(timesInDay).forEach(blocks => {
                         blocks.forEach(block => {
-                            if (block.subjects.some(subId => subjectsToRender.includes(subId))) {
+                            if (block.subjects.some(subId => {
+                                if (!subjectsToRender.includes(subId)) return false;
+                                return getRealOccupancy(subId, block.id) > 0;
+                            })) {
                                 hasValidSubjects = true;
                             }
                         });
@@ -1995,10 +1998,13 @@
                     const sortedTimes = Object.keys(timesInDay).sort();
                     
                     sortedTimes.forEach(time => {
-                        // Verificar si este horario específico tiene asignaturas válidas
+                        // Verificar si este horario específico tiene asignaturas válidas (>0 alumnos)
                         let timeHasValidSubjects = false;
                         timesInDay[time].forEach(block => {
-                            if (block.subjects.some(subId => subjectsToRender.includes(subId))) {
+                            if (block.subjects.some(subId => {
+                                if (!subjectsToRender.includes(subId)) return false;
+                                return getRealOccupancy(subId, block.id) > 0;
+                            })) {
                                 timeHasValidSubjects = true;
                             }
                         });
@@ -2014,6 +2020,8 @@
                             block.subjects.forEach(subId => {
                                 if (!subjectsToRender.includes(subId)) return;
                                 const count = getRealOccupancy(subId, block.id);
+                                if (count === 0) return; // No mostrar materias vacías
+                                
                                 const max = getMaxStudents(subId);
                                 const isFull = count >= max;
                                 
