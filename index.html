@@ -1358,7 +1358,7 @@
         function getMaxStudents(subId) {
             if (subId === 'marketing') return 12;
             if (subId === 'capcut') return 4;
-            if (subId === 'diseño') return 6;
+            if (subId === 'diseño' || subId === 'ia') return 6;
             return 8;
         }
         
@@ -1594,17 +1594,21 @@
         }
 
         function getRealOccupancy(subId, blockId) {
-            const data = appData[subId] || {};
-            const students = data[blockId] || [];
-            
-            // Calculamos ocupación real considerando restricciones de día (Ya no hay overlaps de bloques especiales)
             let day1Count = 0;
             let day2Count = 0;
             
-            students.forEach(s => {
-                if (s.dayRestriction === 1) day1Count++;
-                else if (s.dayRestriction === 2) day2Count++;
-                else { day1Count++; day2Count++; }
+            // Si es diseño o IA, debemos sumar AMBOS porque comparten el salón físico.
+            const subjectsToCheck = (subId === 'diseño' || subId === 'ia') ? ['diseño', 'ia'] : [subId];
+            
+            subjectsToCheck.forEach(sId => {
+                const data = appData[sId] || {};
+                const students = data[blockId] || [];
+                
+                students.forEach(s => {
+                    if (s.dayRestriction === 1) day1Count++;
+                    else if (s.dayRestriction === 2) day2Count++;
+                    else { day1Count++; day2Count++; }
+                });
             });
             
             return Math.max(day1Count, day2Count);
