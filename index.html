@@ -1267,7 +1267,6 @@
             const baseCount = Math.max(day1Count, day2Count);
             
             const overlaps = getOverlappingBlocks(blockId);
-            const data = appData[subId] || {};
             
             if (overlaps.length === 2) {
                 const count1 = (data[overlaps[0]] || []).length;
