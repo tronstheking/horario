@@ -1264,6 +1264,61 @@
             return Math.max(day1Count, day2Count);
         }
 
+        // ==========================================
+        // FUNCIONES DE AUTOMATIZACIÓN INTELIGENTE
+        // ==========================================
+        
+        function getStudentOccupiedSlots(searchName) {
+            const slots = [];
+            const lowerSearch = searchName.trim().toLowerCase();
+            if(!lowerSearch) return slots;
+            
+            for (const subId in appData) {
+                for (const blockId in appData[subId]) {
+                    const students = appData[subId][blockId] || [];
+                    students.forEach(st => {
+                        const name = (st.name || st).trim().toLowerCase();
+                        if (name === lowerSearch) {
+                            const restr = st.dayRestriction || 0;
+                            if (restr === 0) {
+                                slots.push(`${blockId}-day1`);
+                                slots.push(`${blockId}-day2`);
+                            } else {
+                                slots.push(`${blockId}-day${restr}`);
+                            }
+                        }
+                    });
+                }
+            }
+            return slots;
+        }
+
+        function getSuggestionsHtml(subId) {
+            let available = [];
+            BLOCKS.filter(b => b.subjects.includes(subId)).forEach(b => {
+                const count = getRealOccupancy(subId, b.id);
+                const max = getMaxStudents(subId);
+                if (count < max) {
+                    available.push({
+                        label: `${b.days} ${b.time.replace(/0(\d):/g, '$1:').replace(/:00/g, '')}`,
+                        free: max - count
+                    });
+                }
+            });
+            if (available.length === 0) return 'La academia está totalmente llena para esta asignatura.';
+            
+            // Ordenar por mayor cantidad de cupos libres
+            available.sort((a, b) => b.free - a.free);
+            const top = available.slice(0, 2); // mostrar maximo 2
+            
+            let html = '<div style="font-size: 12px; color: var(--google-text-secondary); background: #f1f3f4; padding: 10px 14px; border-radius: 8px; margin-top: 16px; display: flex; align-items: flex-start; gap: 8px; border-left: 4px solid #fbbc04;">';
+            html += '<span class="material-symbols-rounded" style="font-size: 18px; color: #fbbc04;">lightbulb</span>';
+            html += '<div><strong style="color: var(--google-text); font-size: 13px;">Sugerencias Inteligentes de Horario:</strong><br><div style="margin-top: 4px;">';
+            html += top.map(s => `• ${s.label} <span style="color:var(--google-green); font-weight: 500;">(${s.free} libres)</span>`).join('<br>');
+            html += '</div></div></div>';
+            return html;
+        }
+
         /**
          * --- RENDERIZADO DEL SELECTOR DEL FORMULARIO ---
          */
@@ -1405,10 +1460,21 @@
             });
 
             if (!hasAvailable) {
-                container.innerHTML = '<div style="font-size:13px; color:var(--google-red); margin-top:8px;">❌ Sin cupos disponibles en esta materia</div>';
+                const msg = document.createElement('div');
+                msg.style = "font-size:13px; color:var(--google-red); margin-top:12px; font-weight: 500;";
+                msg.textContent = "❌ Sin cupos disponibles en la vista actual.";
+                container.appendChild(msg);
                 submitBtn.disabled = true;
             } else {
                 submitBtn.disabled = false;
+            }
+
+            // AUTOMATIZACIÓN 1: Mostrar Sugerencias si hay bloques llenos en la vista
+            const fullChips = container.querySelectorAll('.chip.full');
+            if (fullChips.length > 0) {
+                const sugEl = document.createElement('div');
+                sugEl.innerHTML = getSuggestionsHtml(currentSelectedSubject);
+                container.appendChild(sugEl);
             }
         }
 
@@ -1841,6 +1907,34 @@
 
                 const currentDate = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
                 const variant = currentSelectedSubject === 'diseño' ? document.getElementById('studentModality').value : null;
+
+                // AUTOMATIZACIÓN 2: Detección de Conflictos (Cross-Registration)
+                const attemptedSlots = [];
+                selectedBlockChips.forEach(chip => {
+                    const restr = chip.dataset.dayRestr ? parseInt(chip.dataset.dayRestr) : 0;
+                    const addSlots = (bId) => {
+                        if (restr === 0) {
+                            attemptedSlots.push(`${bId}-day1`);
+                            attemptedSlots.push(`${bId}-day2`);
+                        } else {
+                            attemptedSlots.push(`${bId}-day${restr}`);
+                        }
+                    };
+                    if (chip.dataset.blockId1 && chip.dataset.blockId2) {
+                        addSlots(chip.dataset.blockId1);
+                        addSlots(chip.dataset.blockId2);
+                    } else if (chip.dataset.blockId) {
+                        addSlots(chip.dataset.blockId);
+                    }
+                });
+                
+                const existingSlots = getStudentOccupiedSlots(name);
+                const conflicts = attemptedSlots.filter(slot => existingSlots.includes(slot));
+                
+                if (conflicts.length > 0) {
+                    const proceed = confirm(`⚠️ ALERTA DE CONFLICTO DE HORARIO ⚠️\n\nEl sistema detectó que el alumno "${name}" ya está inscrito en otra materia EXACTAMENTE en este mismo horario.\n\n¿Estás seguro de que deseas inscribirlo y generar un choque de horarios en la academia?`);
+                    if (!proceed) return;
+                }
 
                 // Insertar alumno de forma reactiva
                 selectedBlockChips.forEach(chip => {
