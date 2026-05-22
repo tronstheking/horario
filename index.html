@@ -710,6 +710,86 @@
             pointer-events: none;
         }
 
+        /* --- Custom Dropdowns --- */
+        .custom-select-wrapper {
+            position: relative;
+            user-select: none;
+            font-size: 14px;
+        }
+        .custom-select-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--google-border);
+            border-radius: 100px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--google-text-secondary);
+            transition: all 0.3s ease;
+            min-width: 170px;
+        }
+        .custom-select-trigger:hover, .custom-select-wrapper.open .custom-select-trigger {
+            background: #fff;
+            border-color: var(--google-blue);
+            color: var(--google-blue);
+            box-shadow: var(--shadow-subtle);
+        }
+        .custom-select-trigger .material-symbols-rounded {
+            font-size: 18px;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .custom-select-wrapper.open .custom-select-trigger .material-symbols-rounded {
+            transform: rotate(180deg);
+        }
+        .custom-options {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            min-width: 100%;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            border: 1px solid var(--google-border);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            padding: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .custom-select-wrapper.open .custom-options {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .custom-option {
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--google-text);
+            transition: all 0.2s;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .custom-option:hover {
+            background: #f1f3f4;
+        }
+        .custom-option.selected {
+            background: var(--google-blue);
+            color: white;
+            font-weight: 500;
+        }
+
         .toast {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(12px);
@@ -1151,29 +1231,49 @@
                     <span id="gridTitle">Matriz Completa de Horarios</span>
                 </div>
                 <div class="matrix-filters" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-                    <select id="subjectFilter" class="form-input" style="padding: 10px 20px; border-radius: 100px; font-size: 14px; outline: none; background: rgba(255, 255, 255, 0.9); border: 1px solid var(--google-border); cursor: pointer; color: var(--google-text-secondary); font-family: 'Outfit', sans-serif; font-weight: 500;">
-                        <option value="all">📚 Todos los Cursos</option>
-                        <option value="diseño">Diseño</option>
-                        <option value="capcut">CapCut</option>
-                        <option value="ia">Inteligencia Artificial</option>
-                        <option value="marketing">Marketing Digital</option>
-                        <option value="excel">Excel</option>
-                        <option value="wordpress">WordPress</option>
-                    </select>
-                    <select id="dayFilter" class="form-input" style="padding: 10px 20px; border-radius: 100px; font-size: 14px; outline: none; background: rgba(255, 255, 255, 0.9); border: 1px solid var(--google-border); cursor: pointer; color: var(--google-text-secondary); font-family: 'Outfit', sans-serif; font-weight: 500;">
-                        <option value="all">📅 Todos los Días</option>
-                        <option value="Lunes">Lunes</option>
-                        <option value="Martes">Martes</option>
-                        <option value="Miércoles">Miércoles</option>
-                        <option value="Jueves">Jueves</option>
-                        <option value="Viernes">Viernes</option>
-                        <option value="Sábados">Sábados</option>
-                    </select>
-                    <select id="timeFilter" class="form-input" style="padding: 10px 20px; border-radius: 100px; font-size: 14px; outline: none; background: rgba(255, 255, 255, 0.9); border: 1px solid var(--google-border); cursor: pointer; color: var(--google-text-secondary); font-family: 'Outfit', sans-serif; font-weight: 500;">
-                        <option value="all">⏰ Todos los Turnos</option>
-                        <option value="am">Mañana</option>
-                        <option value="pm">Tarde</option>
-                    </select>
+                    <div class="custom-select-wrapper" id="subjectFilterWrap">
+                        <div class="custom-select-trigger" id="subjectFilterTrigger">
+                            <span>📚 Todos los Cursos</span>
+                            <span class="material-symbols-rounded">expand_more</span>
+                        </div>
+                        <div class="custom-options" id="subjectFilterOptions">
+                            <div class="custom-option selected" data-value="all">📚 Todos los Cursos</div>
+                            <div class="custom-option" data-value="diseño">🎨 Diseño</div>
+                            <div class="custom-option" data-value="capcut">🎬 CapCut</div>
+                            <div class="custom-option" data-value="ia">🤖 Inteligencia Artificial</div>
+                            <div class="custom-option" data-value="marketing">📈 Marketing Digital</div>
+                            <div class="custom-option" data-value="excel">📊 Excel</div>
+                            <div class="custom-option" data-value="wordpress">🌐 WordPress</div>
+                        </div>
+                    </div>
+
+                    <div class="custom-select-wrapper" id="dayFilterWrap">
+                        <div class="custom-select-trigger" id="dayFilterTrigger">
+                            <span>📅 Todos los Días</span>
+                            <span class="material-symbols-rounded">expand_more</span>
+                        </div>
+                        <div class="custom-options" id="dayFilterOptions">
+                            <div class="custom-option selected" data-value="all">📅 Todos los Días</div>
+                            <div class="custom-option" data-value="Lunes">Lunes</div>
+                            <div class="custom-option" data-value="Martes">Martes</div>
+                            <div class="custom-option" data-value="Miércoles">Miércoles</div>
+                            <div class="custom-option" data-value="Jueves">Jueves</div>
+                            <div class="custom-option" data-value="Viernes">Viernes</div>
+                            <div class="custom-option" data-value="Sábados">Sábados</div>
+                        </div>
+                    </div>
+
+                    <div class="custom-select-wrapper" id="timeFilterWrap">
+                        <div class="custom-select-trigger" id="timeFilterTrigger">
+                            <span>⏰ Todos los Turnos</span>
+                            <span class="material-symbols-rounded">expand_more</span>
+                        </div>
+                        <div class="custom-options" id="timeFilterOptions">
+                            <div class="custom-option selected" data-value="all">⏰ Todos los Turnos</div>
+                            <div class="custom-option" data-value="am">🌅 Mañana</div>
+                            <div class="custom-option" data-value="pm">🌇 Tarde</div>
+                        </div>
+                    </div>
                     <div class="chips-container" id="statusFilterContainer">
                         <div class="chip selected" data-status="all">Todos</div>
                         <div class="chip" data-status="available">Libres</div>
@@ -2171,32 +2271,67 @@
                 });
             });
 
-            // 2.6 Manejo del Filtro de Día
-            const dayFilterSelect = document.getElementById('dayFilter');
-            if (dayFilterSelect) {
-                dayFilterSelect.addEventListener('change', (e) => {
-                    currentDayFilter = e.target.value;
-                    renderGrid();
+
+            // AUTOMATIZACIÓN DE CUSTOM SELECTS
+            function setupCustomSelect(wrapId, triggerId, optionsId, onChange) {
+                const wrap = document.getElementById(wrapId);
+                const trigger = document.getElementById(triggerId);
+                const options = document.getElementById(optionsId);
+                if (!wrap || !trigger || !options) return;
+                const spanText = trigger.querySelector('span');
+
+                trigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
+                        if (w !== wrap) w.classList.remove('open');
+                    });
+                    wrap.classList.toggle('open');
+                });
+
+                options.querySelectorAll('.custom-option').forEach(opt => {
+                    opt.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        options.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                        spanText.innerHTML = opt.innerHTML;
+                        wrap.classList.remove('open');
+                        onChange(opt.dataset.value);
+                    });
                 });
             }
 
-            // 2.7 Manejo del Filtro de Curso
-            const subjectFilterSelect = document.getElementById('subjectFilter');
-            if (subjectFilterSelect) {
-                subjectFilterSelect.addEventListener('change', (e) => {
-                    currentSubjectFilter = e.target.value;
-                    renderGrid();
-                });
-            }
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.custom-select-wrapper').forEach(w => w.classList.remove('open'));
+            });
 
-            // 2.8 Manejo del Filtro de Turno
-            const timeFilterSelect = document.getElementById('timeFilter');
-            if (timeFilterSelect) {
-                timeFilterSelect.addEventListener('change', (e) => {
-                    currentTimeFilter = e.target.value;
-                    renderGrid();
+            setupCustomSelect('subjectFilterWrap', 'subjectFilterTrigger', 'subjectFilterOptions', (val) => {
+                currentActiveFilter = val;
+                
+                // Sincronizar con el sidebar
+                navItems.forEach(i => {
+                    if (i.dataset.filter === val) i.classList.add('active');
+                    else i.classList.remove('active');
                 });
-            }
+
+                if (val === 'all') {
+                    formSection.classList.remove('hidden');
+                    gridTitle.textContent = "Matriz Completa de Horarios";
+                } else {
+                    formSection.classList.add('hidden');
+                    gridTitle.textContent = `Horarios Asignados para: ${SUBJECTS[val]}`;
+                }
+                renderGrid();
+            });
+
+            setupCustomSelect('dayFilterWrap', 'dayFilterTrigger', 'dayFilterOptions', (val) => {
+                currentDayFilter = val;
+                renderGrid();
+            });
+
+            setupCustomSelect('timeFilterWrap', 'timeFilterTrigger', 'timeFilterOptions', (val) => {
+                currentTimeFilter = val;
+                renderGrid();
+            });
 
             navItems.forEach(item => {
                 item.addEventListener('click', () => {
@@ -2208,12 +2343,14 @@
                     if (currentActiveFilter === 'all') {
                         formSection.classList.remove('hidden');
                         gridTitle.textContent = "Matriz Completa de Horarios";
-                        if (subjectFilterSelect) subjectFilterSelect.style.display = 'block';
+                        const wrap = document.getElementById('subjectFilterWrap');
+                        if (wrap) wrap.style.display = 'block';
                     } else {
                         // Si se filtra por aula específica, ocultamos el formulario para mejor UI y enfocamos el Grid
                         formSection.classList.add('hidden');
                         gridTitle.textContent = `Horarios Asignados para: ${SUBJECTS[currentActiveFilter]}`;
-                        if (subjectFilterSelect) subjectFilterSelect.style.display = 'none';
+                        const wrap = document.getElementById('subjectFilterWrap');
+                        if (wrap) wrap.style.display = 'none';
                     }
                     
                     renderGrid();
