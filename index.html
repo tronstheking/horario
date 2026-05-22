@@ -544,18 +544,20 @@
         }
 
         .carousel-container::-webkit-scrollbar {
-            height: 8px;
+            height: 6px;
         }
         .carousel-container::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.05);
-            border-radius: 4px;
+            background: transparent;
+            margin: 0 10px; /* Separación en los bordes */
         }
         .carousel-container::-webkit-scrollbar-thumb {
-            background: rgba(0,0,0,0.15);
-            border-radius: 4px;
+            background: rgba(138, 149, 165, 0.3);
+            border-radius: 20px;
+            transition: background 0.3s ease;
         }
         .carousel-container::-webkit-scrollbar-thumb:hover {
-            background: rgba(0,0,0,0.3);
+            background: var(--google-blue);
+            cursor: pointer;
         }
 
         .carousel-container .card {
