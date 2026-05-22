@@ -1171,7 +1171,108 @@
         }
 
         async function loadData() {
-            // Inicialización vacía para evitar crasheos antes de cargar Firebase
+            // ==========================================
+        // AUTOMATIZACIÓN 3: PANEL DEL DIRECTOR
+        // ==========================================
+        function showDirectorAnalytics() {
+            let totalStudents = 0;
+            let criticalRooms = [];
+            let ghostRooms = [];
+            const studentCounts = {};
+
+            for (const subId in appData) {
+                for (const blockId in appData[subId]) {
+                    const students = appData[subId][blockId] || [];
+                    const realOccupancy = getRealOccupancy(subId, blockId);
+                    const max = getMaxStudents(subId);
+                    const b = BLOCKS.find(bl => bl.id === blockId);
+                    
+                    if (!b || realOccupancy === 0) continue;
+                    
+                    // Contar para top students (evitando dobles conteos del mismo nombre en el mismo curso)
+                    students.forEach(st => {
+                        const name = (st.name || st).trim().toLowerCase();
+                        if (!studentCounts[name]) studentCounts[name] = new Set();
+                        studentCounts[name].add(subId); // Registramos que ve esta materia
+                    });
+
+                    // Identificar salones
+                    const blockLabel = `${SUBJECTS[subId]} - ${b.days} ${b.time.split(' - ')[0]}`;
+                    if (realOccupancy === max || realOccupancy === max - 1) {
+                        criticalRooms.push(`${blockLabel} <span style="color:var(--google-red); font-weight:600;">(${realOccupancy}/${max})</span>`);
+                    } else if (realOccupancy <= 2) {
+                        ghostRooms.push(`${blockLabel} <span style="color:var(--brand-primary); font-weight:600;">(${realOccupancy}/${max})</span>`);
+                    }
+                }
+            }
+
+            // Filtrar top students
+            for (const [name, subjectsSet] of Object.entries(studentCounts)) {
+                totalStudents++;
+            }
+            
+            const topStudents = [];
+            for (const [name, subjectsSet] of Object.entries(studentCounts)) {
+                if (subjectsSet.size >= 3) {
+                    topStudents.push(`<span style="text-transform:capitalize;">${name}</span> <span style="color:var(--google-green); font-weight:600;">(${subjectsSet.size} materias)</span>`);
+                }
+            }
+
+            let htmlContent = `
+                <div style="display: grid; grid-template-columns: 1fr; gap: 15px; font-family: 'Inter', sans-serif;">
+                    <div style="background: var(--google-blue); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700;">${totalStudents}</div>
+                        <div style="font-size: 13px; opacity: 0.9;">Alumnos Únicos Activos</div>
+                    </div>
+                    
+                    <div style="background: #fce8e6; padding: 12px; border-radius: 8px; border-left: 4px solid var(--google-red);">
+                        <strong style="color: var(--google-red); font-size: 14px; display: flex; align-items: center; gap: 5px;"><span class="material-symbols-rounded" style="font-size:18px;">local_fire_department</span> Salones Críticos (Casi llenos)</strong>
+                        <div style="margin-top: 6px; font-size: 13px; color: var(--google-text-secondary); max-height: 80px; overflow-y: auto;">
+                            ${criticalRooms.length > 0 ? criticalRooms.join('<br>') : 'Ninguno por ahora.'}
+                        </div>
+                    </div>
+
+                    <div style="background: var(--brand-secondary); padding: 12px; border-radius: 8px; border-left: 4px solid var(--brand-primary);">
+                        <strong style="color: var(--brand-primary); font-size: 14px; display: flex; align-items: center; gap: 5px;"><span class="material-symbols-rounded" style="font-size:18px;">severe_cold</span> Salones Fríos (Baja matrícula)</strong>
+                        <div style="margin-top: 6px; font-size: 13px; color: var(--brand-primary); max-height: 80px; overflow-y: auto;">
+                            ${ghostRooms.length > 0 ? ghostRooms.join('<br>') : 'Ninguno por ahora.'}
+                        </div>
+                    </div>
+
+                    <div style="background: #e6f4ea; padding: 12px; border-radius: 8px; border-left: 4px solid var(--google-green);">
+                        <strong style="color: var(--google-green); font-size: 14px; display: flex; align-items: center; gap: 5px;"><span class="material-symbols-rounded" style="font-size:18px;">stars</span> Alumnos VIP (3+ materias)</strong>
+                        <div style="margin-top: 6px; font-size: 13px; color: #0d652d; max-height: 80px; overflow-y: auto;">
+                            ${topStudents.length > 0 ? topStudents.join('<br>') : 'Aún no hay VIPs.'}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            showPremiumDialog({
+                title: '📊 Estado de la Academia',
+                message: '',
+                htmlContent: htmlContent,
+                type: 'info',
+                showCancel: false,
+                okText: 'Cerrar Panel'
+            });
+        }
+
+        // Agregar botón en el menú lateral
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebarNav = document.querySelector('.sidebar-nav');
+            const analyticsBtn = document.createElement('div');
+            analyticsBtn.className = 'nav-item';
+            analyticsBtn.innerHTML = '<span class="material-symbols-rounded">bar_chart</span>Estado (Analytics)';
+            analyticsBtn.onclick = (e) => {
+                e.preventDefault();
+                showDirectorAnalytics();
+            };
+            // Remove active class from others when clicked if needed, but since it's just a modal we can leave it as a button action
+            sidebarNav.appendChild(analyticsBtn);
+        });
+
+        // Inicialización vacía para evitar crasheos antes de cargar Firebase
             appData = {
                 'diseño': {}, 'capcut': {}, 'ia': {}, 'marketing': {}, 'excel': {}, 'wordpress': {}
             };
